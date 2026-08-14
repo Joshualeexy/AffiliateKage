@@ -21,41 +21,26 @@ NON-NEGOTIABLE OUTPUT RULES:
 - Use at least 7 H2 sections using "##".
 - Include at least 3 H3 subsections using "###".
 - Include a FAQ section with at least 5 comparison questions and direct answers.
-- Do not include images, image placeholders, HTML, source links, citations, or bibliography blocks in the article body.
+- Do not include images, image placeholders, or HTML in the article body. You MAY include relevant reference links, citations, and source links using standard Markdown link syntax where appropriate.
+- For EVERY specific product you recommend or review, you MUST wrap the product name itself in an Amazon search link, formatted EXACTLY like this: [Product Name](https://www.amazon.com/s?k=product+name) (with spaces replaced by '+'). Do NOT use generic text like "Check Price on Amazon" or similar.
+- Format Markdown correctly: ALWAYS leave a blank empty line before and after all headings (H2, H3, etc).
+- NEVER use bold text (e.g. **Heading**) for section titles. ALWAYS use proper Markdown heading syntax (## or ###) for all sections, including "Quick Picks", "At A Glance", and "Why You Should Trust Us".
 
 COMPARISON STRUCTURE:
 - Open with the practical decision the reader is trying to make.
 - State the overall winner early, then explain the nuance.
-- Include a side-by-side comparison table near the top.
+- Include a side-by-side comparison table near the top using standard Markdown table syntax. Format individual contender specifications/data as bullet lists or blockquotes (`>`), NOT code blocks.
 - Include "How We Compared" with the criteria that matter most.
-- Give each contender its own section with strengths, weaknesses, and ideal buyer.
-- Include "Winner By Use Case" with direct recommendations for different reader needs.
+- Give each contender its own section with strengths, weaknesses, and ideal buyer. Format key specifications for each contender as a bullet list, and wrap expert quotes/callouts in blockquotes (`>`).
+- Include "Winner By Use Case" with direct recommendations for different reader needs. Use `✅` and `❌` lists to highlight specific matchings.
 - Explain when the runner-up is actually the smarter choice.
-- End with a decisive verdict. Do not use the heading "Conclusion", "Summary", or "Final Thoughts".
+- End with a decisive verdict. At the end of the verdict section, wrap the final decision summary in Markdown blockquote syntax (`>`) and use ratings stars or checkmarks to summarize the outcome, followed by an affiliate disclaimer note. Do not use the heading "Conclusion", "Summary", or "Final Thoughts".
 
 STYLE:
 - Compare directly. Do not describe products in isolation.
 - Make clear calls instead of over-balancing every point.
 - Use concise paragraphs, bullets, and tables where they help.
-- Avoid filler, repetition, and generic AI phrasing.
-- Do not use em dashes or en dashes.
-
-BANNED PHRASES:
-- "In today's fast-paced world"
-- "In today's [blank] world"
-- "Whether you're a beginner or expert"
-- "It's worth noting that"
-- "At the end of the day"
-- "Without further ado"
-- "In conclusion"
-- "All in all"
-- "Look no further"
-- "When it comes to"
-- "Dive deep"
-- "Delve into"
-- "Let's take a closer look"
-- "Navigating the world of"
-- "Game-changer"
+$style_guide
 
 Return ONLY valid JSON in this shape:
 

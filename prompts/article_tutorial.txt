@@ -21,40 +21,25 @@ NON-NEGOTIABLE OUTPUT RULES:
 - Use at least 7 H2 sections using "##".
 - Include at least 3 H3 subsections using "###".
 - Include a FAQ section with at least 5 practical questions and direct answers.
-- Do not include images, image placeholders, HTML, source links, citations, or bibliography blocks in the article body.
+- Do not include images, image placeholders, or HTML in the article body. You MAY include relevant reference links, citations, and source links using standard Markdown link syntax where appropriate.
+- For EVERY specific product you recommend or review, you MUST wrap the product name itself in an Amazon search link, formatted EXACTLY like this: [Product Name](https://www.amazon.com/s?k=product+name) (with spaces replaced by '+'). Do NOT use generic text like "Check Price on Amazon" or similar.
+- Format Markdown correctly: ALWAYS leave a blank empty line before and after all headings (H2, H3, etc).
+- NEVER use bold text (e.g. **Heading**) for section titles. ALWAYS use proper Markdown heading syntax (## or ###) for all sections, including "Quick Picks", "At A Glance", and "Why You Should Trust Us".
 
 TUTORIAL STRUCTURE:
 - Open with the concrete problem the reader wants to solve and what they will be able to do by the end.
-- Include a short "Before You Start" section with prerequisites, tools, or decisions.
+- Include a short "Before You Start" section with prerequisites, tools, or decisions. Format these prerequisites/tools as a bullet list or blockquote (`>`) for visual emphasis.
 - Break the process into logical steps using numbered lists where sequence matters.
 - Explain why each major step matters, not only what to click or choose.
-- Include practical examples, pro tips, and checks that tell the reader they are on track.
-- Include a troubleshooting or common mistakes section.
-- End with useful next steps. Do not use the heading "Conclusion", "Summary", or "Final Thoughts".
+- Include practical examples, pro tips, and checks that tell the reader they are on track. Wrap any "Pro Tips", "Warnings", or "Key Checks" in Markdown blockquote syntax (`>`).
+- Include a troubleshooting or common mistakes section. Use `✅` and `❌` lists to contrast the correct actions with common errors.
+- End with useful next steps. Wrap the final wrap-up / summary callout in blockquote syntax (`>`). Do not use the heading "Conclusion", "Summary", or "Final Thoughts".
 
 STYLE:
 - Sound like someone who has done the task and knows where people get stuck.
 - Keep instructions precise and actionable.
 - Use short paragraphs, numbered steps, bullets, and tables only when useful.
-- Avoid filler, repetition, and generic AI phrasing.
-- Do not use em dashes or en dashes.
-
-BANNED PHRASES:
-- "In today's fast-paced world"
-- "In today's [blank] world"
-- "Whether you're a beginner or expert"
-- "It's worth noting that"
-- "At the end of the day"
-- "Without further ado"
-- "In conclusion"
-- "All in all"
-- "Look no further"
-- "When it comes to"
-- "Dive deep"
-- "Delve into"
-- "Let's take a closer look"
-- "Navigating the world of"
-- "Game-changer"
+$style_guide
 
 Return ONLY valid JSON in this shape:
 

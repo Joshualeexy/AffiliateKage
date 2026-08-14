@@ -21,40 +21,25 @@ NON-NEGOTIABLE OUTPUT RULES:
 - Use at least 7 H2 sections using "##".
 - Include at least 3 H3 subsections using "###".
 - Include a FAQ section with at least 5 buyer questions and direct answers.
-- Do not include images, image placeholders, HTML, source links, citations, or bibliography blocks in the article body.
+- Do not include images, image placeholders, or HTML in the article body. You MAY include relevant reference links, citations, and source links using standard Markdown link syntax where appropriate.
+- For EVERY specific product you recommend or review, you MUST wrap the product name itself in an Amazon search link, formatted EXACTLY like this: [Product Name](https://www.amazon.com/s?k=product+name) (with spaces replaced by '+'). Do NOT use generic text like "Check Price on Amazon" or similar.
+- Format Markdown correctly: ALWAYS leave a blank empty line before and after all headings (H2, H3, etc).
+- NEVER use bold text (e.g. **Heading**) for section titles. ALWAYS use proper Markdown heading syntax (## or ###) for all sections, including "Quick Picks", "At A Glance", and "Why You Should Trust Us".
 
 LISTICLE STRUCTURE:
 - Open with the buying problem and the promise of the roundup.
 - Include "How We Chose" before the picks.
-- Include a quick comparison table near the top.
+- Include a quick comparison table near the top using standard Markdown table syntax. Format individual product technical specifications as bullet lists or blockquotes (`>`), NOT code blocks.
 - Use category-led picks such as "Best Overall", "Best Budget", "Best Premium", and "Best for Small Spaces" instead of plain numbered items.
-- For each pick, explain who it is for, what it does well, what it gets wrong, and when to choose something else.
+- For each pick, explain who it is for, what it does well, what it gets wrong, and when to choose something else. Format each pick's key specs/dimensions as a bullet list, and wrap key expert quotes or callouts in blockquotes (`>`).
 - Include a short buying advice section after the picks.
-- End with a clear top recommendation and runner-up. Do not use the heading "Conclusion", "Summary", or "Final Thoughts".
+- End with a clear top recommendation and runner-up. Wrap the final recommendation summary in Markdown blockquote syntax (`>`) and use ratings stars or `✅` lists to highlight recommendations, followed by an affiliate disclaimer note. Do not use the heading "Conclusion", "Summary", or "Final Thoughts".
 
 STYLE:
 - Sound like a careful editor who has narrowed the field for the reader.
 - Do not make every pick sound equally perfect.
 - Use concise paragraphs, practical bullets, and comparison tables.
-- Avoid filler, repetition, and generic AI phrasing.
-- Do not use em dashes or en dashes.
-
-BANNED PHRASES:
-- "In today's fast-paced world"
-- "In today's [blank] world"
-- "Whether you're a beginner or expert"
-- "It's worth noting that"
-- "At the end of the day"
-- "Without further ado"
-- "In conclusion"
-- "All in all"
-- "Look no further"
-- "When it comes to"
-- "Dive deep"
-- "Delve into"
-- "Let's take a closer look"
-- "Navigating the world of"
-- "Game-changer"
+$style_guide
 
 Return ONLY valid JSON in this shape:
 

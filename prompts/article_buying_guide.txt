@@ -21,41 +21,27 @@ NON-NEGOTIABLE OUTPUT RULES:
 - Use at least 7 H2 sections using "##".
 - Include at least 3 H3 subsections using "###".
 - Include a FAQ section with at least 5 buyer questions and direct answers.
-- Do not include images, image placeholders, HTML, source links, citations, or bibliography blocks in the article body.
+- Do not include images, image placeholders, or HTML in the article body. You MAY include relevant reference links, citations, and source links using standard Markdown link syntax where appropriate.
+- For EVERY specific product you recommend or review, you MUST wrap the product name itself in an Amazon search link, formatted EXACTLY like this: [Product Name](https://www.amazon.com/s?k=product+name) (with spaces replaced by '+'). Do NOT use generic text like "Check Price on Amazon" or similar.
+- Format Markdown correctly: ALWAYS leave a blank empty line before and after all headings (H2, H3, etc).
+- NEVER use bold text (e.g. **Heading**) for section titles. ALWAYS use proper Markdown heading syntax (## or ###) for all sections, including "Quick Picks", "At A Glance", and "Why You Should Trust Us".
 
 BUYING GUIDE STRUCTURE:
 - Open with the reader's buying problem and the main tradeoff in this category.
-- Include "Quick Picks" near the top with best overall, best value, best budget, and best premium where relevant.
+- Include "Quick Picks" near the top with best overall, best value, best budget, and best premium where relevant. For each pick in this section, format key specifications or quick stats as bullet lists or blockquotes (`>`) for visual emphasis.
 - Include "How We Chose" or "What We Prioritized" with practical criteria.
 - Include a comparison table with the most useful buying criteria.
-- Give each recommendation a useful section with who it is for, why it stands out, flaws to know, and when to avoid it.
+- Give each recommendation a useful section. For each recommended product:
+  - Format its technical specifications or dimensions as a bullet list or blockquote.
+  - Wrap any highlighted key takeaways, expert quotes, or crucial callouts in Markdown blockquote syntax (`>`).
 - Include a section explaining how to choose based on budget, use case, and must-have features.
-- End with a decisive recommendation naming the top pick and runner-up. Do not use the heading "Conclusion", "Summary", or "Final Thoughts".
+- End with a decisive recommendation naming the top pick and runner-up. Include a "Recommendation Summary" list at the end using `✅` and `❌` emojis (e.g., `For Small Spaces: ✅ Highly Recommended`) followed by an affiliate disclaimer note. Do not use the heading "Conclusion", "Summary", or "Final Thoughts".
 
 STYLE:
 - Sound like an experienced editor helping a reader spend wisely.
 - Be specific about tradeoffs instead of saying every option is good.
 - Use concise paragraphs, useful bullets, and tables where they help.
-- Avoid filler, repetition, and generic AI phrasing.
-- Do not use em dashes or en dashes.
-
-BANNED PHRASES:
-- "In today's fast-paced world"
-- "In today's [blank] world"
-- "Whether you're a beginner or expert"
-- "It's worth noting that"
-- "At the end of the day"
-- "Without further ado"
-- "In conclusion"
-- "All in all"
-- "Look no further"
-- "In the world of"
-- "When it comes to"
-- "Dive deep"
-- "Delve into"
-- "Let's take a closer look"
-- "Navigating the world of"
-- "Game-changer"
+$style_guide
 
 Return ONLY valid JSON in this shape:
 

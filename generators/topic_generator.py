@@ -254,7 +254,7 @@ Return ONLY valid JSON in this exact shape:
 
     # -- generation ---------------------------------------------------------
 
-    def generate(self) -> Dict[str, Any]:
+    def generate(self, api_client: Any = None) -> Dict[str, Any]:
         history = self._load_history()
 
         for attempt in range(self.max_retries):
@@ -319,7 +319,11 @@ Return ONLY valid JSON in this exact shape:
                         raise ValueError(year_issue)
 
                 if self._is_duplicate(topic["title"], history):
-                    raise ValueError(f"Duplicate title: {topic['title']}")
+                    raise ValueError(f"Duplicate title in local history: {topic['title']}")
+
+                if api_client:
+                    if api_client.topic_exists(topic["title"]):
+                        raise ValueError(f"Duplicate or too similar topic exists on API: {topic['title']}")
 
                 history.append({"title": topic["title"].strip(), "category": category})
                 self._save_history(history)

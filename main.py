@@ -15,6 +15,8 @@ from generators.image_prompt_generator import ImagePromptGenerator
 from generators.classifier import Classifier, ArticleType, article_type_from_topic_format
 from generators.outline_generator import OutlineGenerator
 from generators.entity_extractor import EntityExtractor
+from generators.content_sanitizer import ContentSanitizer
+from generators.internal_link_injector import InternalLinkInjector
 from validation.article_validator import ArticleValidator
 from research.crawl4ai_provider import Crawl4AiProvider
 from research.duckduckgo import DuckDuckGoProvider
@@ -51,7 +53,9 @@ def run_pipeline(
     researcher: Crawl4AiProvider,
     outline_generator: OutlineGenerator,
     validator: ArticleValidator,
-    entity_extractor: EntityExtractor
+    entity_extractor: EntityExtractor,
+    content_sanitizer: ContentSanitizer,
+    internal_link_injector: InternalLinkInjector,
 ) -> None:
     state = load_state() or {"stage": "start", "status": "running"}
 
@@ -65,7 +69,7 @@ def run_pipeline(
             if not topic:
                 print("Starting stage: Generate Topic")
                 try:
-                    topic = topic_generator.generate()
+                    topic = topic_generator.generate(api_client=api)
                 except ValueError as e:
                     print(f"Topic generation failed after all retries: {e}")
                     clear_state()
@@ -75,11 +79,11 @@ def run_pipeline(
                 save_state(state)
             else:
                 print(f"Resuming stage: Topic already generated — {topic['title']}")
-
-            if api.topic_exists(topic["title"]):
-                print("Topic already exists. Skipping.")
-                clear_state()
-                return
+                # On resume, perform sanity check since it wasn't generated in this process
+                if api.topic_exists(topic["title"]):
+                    print("Topic already exists on resumption. Skipping.")
+                    clear_state()
+                    return
 
             state["stage"] = "topic_checked"
             save_state(state)
@@ -155,6 +159,14 @@ def run_pipeline(
                 article_type_enum = ArticleType(state["article_type"])
                 article = article_generator.generate(topic, article_type_enum, outline, research_report)
                 print("Completed stage: Generate Article")
+
+                # 5.5 Sanitize Article (code-only, instant)
+                print("Starting stage: Sanitize Article")
+                article["content"] = content_sanitizer.sanitize(article["content"])
+                article["title"] = content_sanitizer.sanitize_plain_text(article["title"])
+                article["seo_title"] = content_sanitizer.sanitize_plain_text(article["seo_title"])
+                print("Completed stage: Sanitize Article")
+
                 state.update({"stage": "article_generated", "article": article})
                 save_state(state)
 
@@ -200,11 +212,36 @@ def run_pipeline(
                 print(f"Completed stage: Extract Entities — Extracted {len(entities)} entities")
                 state["article"]["entities"] = entities
                 state["article"]["article_type"] = state["article_type"]
+                state["article"]["category"] = topic.get("category", "") if topic else ""
                 state.update({"stage": "entities_extracted", "entities": entities})
                 save_state(state)
 
-        # 8. Markdown Conversion
+        # 7.5 Enforce Amazon Links (code-only, instant)
         if state["stage"] == "entities_extracted":
+            print("Starting stage: Enforce Amazon Links")
+            state["article"]["content"] = content_sanitizer.enforce_amazon_links(
+                state["article"]["content"],
+                state.get("entities", []),
+            )
+            print("Completed stage: Enforce Amazon Links")
+            state["stage"] = "amazon_links_enforced"
+            save_state(state)
+
+        # 8. Internal Link Injection (code + LLM)
+        if state["stage"] == "amazon_links_enforced":
+            print("Starting stage: Inject Internal Links")
+            state["article"]["content"] = internal_link_injector.inject(
+                state["article"]["content"],
+                state.get("topic", {}),
+                state.get("entities", []),
+                api,
+            )
+            print("Completed stage: Inject Internal Links")
+            state["stage"] = "internal_links_injected"
+            save_state(state)
+
+        # 9. Markdown Conversion
+        if state["stage"] == "internal_links_injected":
             print("Starting stage: Convert Markdown -> HTML")
             state["article"]["content"] = to_html(state["article"]["content"])
             print("Completed stage: Convert Markdown -> HTML")
@@ -290,11 +327,14 @@ def main(clear_saved_state: bool = False):
         outline_generator = OutlineGenerator()
         validator = ArticleValidator()
         entity_extractor = EntityExtractor()
+        content_sanitizer = ContentSanitizer()
+        internal_link_injector = InternalLinkInjector()
 
         while True:
             run_pipeline(
                 api, comfy, topic_generator, article_generator, image_prompt_generator,
-                classifier, researcher, outline_generator, validator, entity_extractor
+                classifier, researcher, outline_generator, validator, entity_extractor,
+                content_sanitizer, internal_link_injector,
             )
 
             if STATE_PATH.exists():

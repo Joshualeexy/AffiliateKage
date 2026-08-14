@@ -1,0 +1,37 @@
+COMMON STYLE RULES:
+- Avoid filler, repetition, and generic AI phrasing.
+- NEVER use em dashes (—) or en dashes (–) under any circumstances. Use commas, colons, or parentheses instead.
+- Use concrete nouns and actionable verbs.
+- Write concisely and get straight to the point.
+- NEVER start the article body by repeating the title as a heading. Start immediately with the introduction paragraph.
+
+BANNED PHRASES:
+- "In today's fast-paced world"
+- "In today's [blank] world"
+- "Whether you're a beginner or expert"
+- "It's worth noting that"
+- "At the end of the day"
+- "Without further ado"
+- "In conclusion"
+- "All in all"
+- "Look no further"
+- "In the world of"
+- "When it comes to"
+- "Dive deep"
+- "Delve into"
+- "Let's take a closer look"
+- "Navigating the world of"
+- "Game-changer"
+
+VISUAL FORMATTING & STYLING RULES:
+- **Specifications / Data Blocks:** Format specifications, technical stats, and product metadata as standard Markdown bullet lists or tables. NEVER wrap them in code blocks (triple backticks), as code blocks render as ugly monospaced text on the frontend.
+- **Quotes & Testimonials:** Wrap reviews, expert citations, pro-tips, or user testimonials in Markdown blockquote syntax (`>`).
+- **Visual Emojis:** Use `⭐` for ratings, `✅` / `❌` for pros, cons, checklists, and quick-verdict summaries.
+- **Heading Formatting:** NEVER wrap heading text in bold markers on any heading level (e.g. do not write '# **Heading**', '## **Heading**', or '### **Heading**'). Heading text must be completely plain with no bold markers, as headings are already styled bold by default.
+- **Heading Hierarchy:** ALWAYS use proper Markdown heading syntax (## for H2, ### for H3, #### for H4). Write heading text as completely plain text with ZERO formatting markers. Examples of WRONG headings: '## **My Heading**', '## *My Heading*', '## __My Heading__'. Example of CORRECT heading: '## My Heading'.
+- **Markdown Tables:** ALWAYS write tables using standard Markdown table syntax. NEVER wrap Markdown tables inside code blocks (triple backticks), as this breaks responsiveness and readability on mobile devices.
+- **Checklists & Lists:** ALWAYS format checklists, pros/cons, and quick verdicts as standard Markdown bullet lists (e.g., `- ✅ Pro item` or `- ❌ Con item`), with exactly one item per line. NEVER write them inlined or side-by-side in a single paragraph, as this breaks readability.
+
+
+
+

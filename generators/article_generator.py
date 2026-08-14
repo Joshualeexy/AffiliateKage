@@ -37,7 +37,8 @@ class ArticleGenerator:
             secondary_keywords=", ".join(topic.get("secondary_keywords", [])),
             year="2026",
             outline=outline_str,
-            research_context=research_context
+            research_context=research_context,
+            style_guide=load_prompt("style_guide")
         )
 
         for attempt in range(self.max_retries):
@@ -54,6 +55,12 @@ class ArticleGenerator:
                 for field in required:
                     if not article.get(field):
                         raise ValueError(f"Missing {field}")
+
+                # Truncate excerpt if it exceeds 500 characters
+                excerpt = article.get("excerpt", "")
+                if len(excerpt) > 500:
+                    print(f"Warning: Generated excerpt is too long ({len(excerpt)} chars). Truncating to 500 chars.")
+                    article["excerpt"] = excerpt[:497].rstrip() + "..."
 
                 content = article["content"]
                 word_count = len(content.split())
