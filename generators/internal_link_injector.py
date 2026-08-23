@@ -117,7 +117,7 @@ class InternalLinkInjector:
         return self._fallback_get_posts(api_client)
 
     def _fallback_get_posts(self, api_client: Any) -> list:
-        """Read topics from file and verify each via topic_exists API."""
+        """Read published topics from generated_topics.json."""
         global _verified_posts_cache
 
         if not TOPICS_PATH.exists():
@@ -132,21 +132,21 @@ class InternalLinkInjector:
 
         verified = []
         for t in topics:
-            title = t.get("title", "").strip()
-            if not title:
-                continue
-            try:
-                if api_client.topic_exists(title):
-                    verified.append({
-                        "title": title,
-                        "slug": self._slugify(title),
-                    })
-            except Exception:
-                # API error on this check; skip this topic
+            if isinstance(t, dict):
+                title = t.get("title", "").strip()
+            elif isinstance(t, str):
+                title = t.strip()
+            else:
                 continue
 
+            if title:
+                verified.append({
+                    "title": title,
+                    "slug": self._slugify(title),
+                })
+
         _verified_posts_cache = verified
-        print(f"Internal Link Injector: Verified {len(verified)} published posts via fallback.")
+        print(f"Internal Link Injector: Loaded {len(verified)} published posts from local topics database.")
         return verified
 
     def _score_candidates(
@@ -272,9 +272,11 @@ class InternalLinkInjector:
     # ── Utilities ─────────────────────────────────────────────────
 
     @staticmethod
-    def _slugify(title: str) -> str:
+    def _slugify(title: str, evergreen: bool = True) -> str:
         """Convert a title to a URL slug matching the blog's format."""
         slug = title.lower().strip()
+        if evergreen:
+            slug = re.sub(r'\b20\d{2}\b', '', slug)
         slug = re.sub(r'[^\w\s-]', '', slug)   # Remove special chars except hyphens
         slug = re.sub(r'[\s_]+', '-', slug)     # Spaces/underscores to hyphens
         slug = re.sub(r'-+', '-', slug)         # Collapse multiple hyphens

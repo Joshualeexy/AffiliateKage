@@ -51,3 +51,26 @@ class OllamaClient:
             logger.info("Called `ollama stop %s` successfully", self.model)
         except Exception as e:
             logger.warning("Failed to unload Ollama model '%s' via subprocess: %s", self.model, e)
+
+
+def extract_json(text: str | dict) -> Any:
+    """Extract and parse JSON safely from LLM responses, stripping code fences."""
+    import json
+    import re
+    if isinstance(text, (dict, list)):
+        return text
+    if not isinstance(text, str):
+        raise ValueError(f"Expected str or dict, got {type(text)}")
+    clean = text.strip()
+    # Strip markdown code fences if present
+    match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', clean)
+    if match:
+        clean = match.group(1).strip()
+    try:
+        return json.loads(clean)
+    except json.JSONDecodeError:
+        # Fallback to finding outermost JSON brackets
+        fallback_match = re.search(r'(\{[\s\S]*\}|\[[\s\S]*\])', clean)
+        if fallback_match:
+            return json.loads(fallback_match.group(1))
+        raise

@@ -1,6 +1,6 @@
 import json
 from enum import Enum
-from services.ollama_client import OllamaClient
+from services.ollama_client import OllamaClient, extract_json
 
 class ArticleType(Enum):
     BUYING_GUIDE = "buying_guide"
@@ -42,7 +42,7 @@ class Classifier:
         )
         try:
             response = self.client.generate(prompt=prompt, format="json", options={"temperature": 0.1})
-            result = json.loads(response["response"])
+            result = extract_json(response["response"])
             type_str = result.get("type", "informational")
             return ArticleType(type_str)
         except Exception:

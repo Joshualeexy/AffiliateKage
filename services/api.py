@@ -34,11 +34,31 @@ class ApiClient:
                 )
                 time.sleep(backoff_seconds * attempt)
 
+    def get_posts_from_sitemap(self, sitemap_url: str = "https://ejiroinspire.com/sitemap.xml") -> list:
+        """Fetch all published post slugs from the live sitemap.xml."""
+        import xml.etree.ElementTree as ET
+        try:
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+            resp = requests.get(sitemap_url, headers=headers, timeout=10)
+            if resp.status_code == 200:
+                root = ET.fromstring(resp.content)
+                posts = []
+                for u in root.findall("{http://www.sitemaps.org/schemas/sitemap/0.9}url"):
+                    loc_elem = u.find("{http://www.sitemaps.org/schemas/sitemap/0.9}loc")
+                    if loc_elem is not None and loc_elem.text and "/blog/" in loc_elem.text:
+                        slug = loc_elem.text.split("/blog/")[-1].strip("/")
+                        title = slug.replace("-", " ").title()
+                        posts.append({"title": title, "slug": slug, "url": loc_elem.text})
+                print(f"Loaded {len(posts)} published posts directly from live sitemap.xml")
+                return posts
+        except Exception as e:
+            print(f"Warning: Failed to fetch posts from sitemap: {e}")
+        return []
+
     def get_published_posts(self, max_retries: int = 3, backoff_seconds: int = 3) -> list | None:
-        """Fetch all published posts from the blog API.
+        """Fetch all published posts from the blog API, falling back to sitemap.xml.
         
-        Returns a list of dicts with 'title' and 'slug' keys,
-        or None if the endpoint is not available yet.
+        Returns a list of dicts with 'title' and 'slug' keys.
         """
         url = f"{API_URL}/automation/published-posts"
 
@@ -46,16 +66,43 @@ class ApiClient:
             try:
                 response = self.session.get(url)
                 if response.status_code == 404:
-                    # Endpoint not created yet; caller should use fallback
+                    # Endpoint not created yet; fallback to sitemap
+                    sitemap_posts = self.get_posts_from_sitemap()
+                    return sitemap_posts if sitemap_posts else None
+                response.raise_for_status()
+                return response.json()
+            except requests.RequestException as e:
+                if attempt == max_retries:
+                    print(f"Failed to fetch published posts from API: {e}. Falling back to sitemap.")
+                    sitemap_posts = self.get_posts_from_sitemap()
+                    return sitemap_posts if sitemap_posts else None
+                print(
+                    f"Published posts fetch attempt {attempt} failed: {e}. "
+                    f"Retrying in {backoff_seconds * attempt} seconds..."
+                )
+                time.sleep(backoff_seconds * attempt)
+
+    def get_affiliate_links(self, max_retries: int = 3, backoff_seconds: int = 3) -> list | None:
+        """Fetch all affiliate links from the blog API.
+        
+        Returns a list of dicts with 'pattern' and 'url' keys,
+        or None if the endpoint is not available yet or fails.
+        """
+        url = f"{API_URL}/automation/affiliate-links"
+
+        for attempt in range(1, max_retries + 1):
+            try:
+                response = self.session.get(url)
+                if response.status_code == 404:
                     return None
                 response.raise_for_status()
                 return response.json()
             except requests.RequestException as e:
                 if attempt == max_retries:
-                    print(f"Failed to fetch published posts: {e}")
+                    print(f"Failed to fetch affiliate links: {e}")
                     return None
                 print(
-                    f"Published posts fetch attempt {attempt} failed: {e}. "
+                    f"Affiliate links fetch attempt {attempt} failed: {e}. "
                     f"Retrying in {backoff_seconds * attempt} seconds..."
                 )
                 time.sleep(backoff_seconds * attempt)

@@ -1,6 +1,6 @@
 import json
 from typing import List, Dict
-from services.ollama_client import OllamaClient
+from services.ollama_client import OllamaClient, extract_json
 from services.prompt_loader import load_prompt
 
 class EntityExtractor:
@@ -29,7 +29,7 @@ class EntityExtractor:
                 format="json",
                 options={"temperature": 0.2},
             )
-            result = json.loads(response["response"])
+            result = extract_json(response["response"])
             entities = result.get("entities", [])
             
             valid_types = {"product", "brand", "software", "company"}

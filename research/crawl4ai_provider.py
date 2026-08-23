@@ -29,35 +29,41 @@ class Crawl4AiProvider(ResearchProvider):
                 if not results:
                     return report
                 
-                # Try multiple URLs until we get content or exhaust options
-                successful_crawls = 0
-                for r in results[:3]:  # Process up to 3 results
-                    try:
+                # Crawl multiple URLs concurrently
+                async with AsyncWebCrawler() as crawler:
+                    async def crawl_item(r):
                         url = r.get("href", "")
                         title = r.get("title", "")
                         snippet = r.get("body", "")
-                        
                         if not url:
-                            continue
-                            
-                        # Crawl the URL
-                        async with AsyncWebCrawler() as crawler:
+                            return None
+                        try:
                             result = await crawler.arun(url=url)
                             content = result.markdown if result and result.markdown else snippet
-                            
-                            if content.strip():  # Only add results with actual content
-                                report.results.append(SearchResult(
+                            if content.strip():
+                                return SearchResult(
                                     url=url,
                                     title=title,
                                     content=content,
                                     snippet=snippet
-                                ))
-                                successful_crawls += 1
-                                
-                    except Exception as e:
-                        print(f"Failed to crawl {url}: {e}")
-                        continue
-                        
+                                )
+                        except Exception as e:
+                            print(f"Failed to crawl {url}: {e}")
+                            if snippet.strip():
+                                return SearchResult(
+                                    url=url,
+                                    title=title,
+                                    content=snippet,
+                                    snippet=snippet
+                                )
+                        return None
+
+                    tasks = [crawl_item(r) for r in results[:3] if r.get("href")]
+                    crawled = await asyncio.gather(*tasks, return_exceptions=False)
+                    for item in crawled:
+                        if item:
+                            report.results.append(item)
+                            
         except Exception as e:
             print(f"Crawl4AI search failed: {e}")
             

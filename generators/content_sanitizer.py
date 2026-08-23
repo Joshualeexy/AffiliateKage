@@ -24,10 +24,26 @@ class ContentSanitizer:
             text = text.replace(marker, "")
         return text.strip()
 
-    def sanitize(self, content: str) -> str:
-        """Run all formatting sanitization steps on article Markdown content."""
+    def sanitize(self, content: str, article_type: str | None = None) -> str:
+        """Run all formatting sanitization steps on article Markdown content.
+        
+        Args:
+            content: The article Markdown content.
+            article_type: The format type of the article (e.g. tutorial).
+        """
         content = self._remove_dashes(content)
-        content = self._unwrap_code_blocks(content)
+        
+        # Skip unwrapping code blocks for tutorial articles to preserve code blocks and syntax highlighting
+        is_tutorial = False
+        if article_type is not None:
+            if hasattr(article_type, "value"):
+                is_tutorial = article_type.value == "tutorial"
+            else:
+                is_tutorial = str(article_type).lower().strip() == "tutorial"
+
+        if not is_tutorial:
+            content = self._unwrap_code_blocks(content)
+            
         content = self._strip_markdown_markers_from_headings(content)
         content = self._fix_bold_headings(content)
         content = self._split_inlined_lists(content)
@@ -277,11 +293,15 @@ class ContentSanitizer:
                 result.append(line)
                 continue
 
-            # Case-insensitive search for entity in line
-            idx = line.lower().find(entity_name.lower())
-            if idx == -1:
+            # Case-insensitive search for entity in line with word boundaries
+            pattern = re.compile(rf'\b({re.escape(entity_name)})\b', re.IGNORECASE)
+            match = pattern.search(line)
+            if not match:
                 result.append(line)
                 continue
+
+            idx = match.start(1)
+            end_idx = match.end(1)
 
             # Don't wrap if inside an existing Markdown link
             before = line[:idx]
@@ -293,10 +313,9 @@ class ContentSanitizer:
                     continue
 
             # Grab the actual casing of the entity as written in the text
-            actual_name_in_text = line[idx:idx + len(entity_name)]
+            actual_name_in_text = match.group(1)
             link_md = f"[{actual_name_in_text}]({amazon_url})"
 
-            end_idx = idx + len(entity_name)
             line = line[:idx] + link_md + line[end_idx:]
             replaced = True
             result.append(line)

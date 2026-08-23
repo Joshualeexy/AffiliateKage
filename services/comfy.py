@@ -16,7 +16,8 @@ class ComfyClient:
         output_dir: str = "generated",
         comfy_server_process=None,  # For backward compatibility 
     ):
-        self.server = "http://127.0.0.1:8188"
+        from config import COMFY_URL
+        self.server = COMFY_URL or "http://127.0.0.1:8188"
         self.client_id = "comfy_client_" + str(int(time.time()))
         self.session = requests.Session()
 
@@ -160,12 +161,14 @@ class ComfyClient:
         finally:
             self.stop_server()
 
-    def _wait_for_image(self, prompt_id: str) -> str:
+    def _wait_for_image(self, prompt_id: str, timeout_seconds: int = 180) -> str:
         """
         Wait until ComfyUI finishes generation.
         """
-
+        start_time = time.time()
         while True:
+            if time.time() - start_time > timeout_seconds:
+                raise TimeoutError(f"ComfyUI generation timed out after {timeout_seconds} seconds for prompt {prompt_id}")
 
             response = self.session.get(
                 f"{self.server}/history/{prompt_id}",

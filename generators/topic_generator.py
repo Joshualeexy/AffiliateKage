@@ -6,7 +6,8 @@ import time
 from datetime import datetime
 from typing import Any, Dict, List
 
-from services.ollama_client import OllamaClient
+from services.ollama_client import OllamaClient, extract_json
+from research.duckduckgo import DuckDuckGoProvider
 
 
 class TopicGenerator:
@@ -102,11 +103,13 @@ class TopicGenerator:
         max_retries: int = 5,
         history_file: str = "generated_topics.json",
         history_limit: int = 1000,
+        trending_file: str = "trending_keywords.json",
     ):
         self.model_name = model_name or os.getenv("OLLAMA_MODEL", "qwen3:8b")
         self.max_retries = max_retries
         self.history_file = history_file
         self.history_limit = history_limit
+        self.trending_file = trending_file
         self.client = OllamaClient(self.model_name)
 
     # -- history / dedup -------------------------------------------------
@@ -138,9 +141,112 @@ class TopicGenerator:
         with open(self.history_file, "w", encoding="utf-8") as f:
             json.dump(trimmed, f, indent=2)
 
+    def _load_trending_keywords(self) -> Dict[str, List[str]]:
+        if not os.path.exists(self.trending_file):
+            return {}
+        try:
+            with open(self.trending_file, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Failed to load trending keywords: {e}")
+            return {}
+
+    def _get_google_search_suggestions(self, product: str) -> List[str]:
+        import requests
+        from urllib.parse import quote_plus
+        
+        prefixes = [f"best {product}", f"{product} vs", f"{product} review"]
+        suggestions = []
+        
+        for prefix in prefixes:
+            query = prefix.strip()
+            url = f"https://suggestqueries.google.com/complete/search?client=chrome&q={quote_plus(query)}"
+            try:
+                headers = {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                }
+                response = requests.get(url, headers=headers, timeout=5)
+                if response.status_code == 200:
+                    data = response.json()
+                    if len(data) > 1 and isinstance(data[1], list):
+                        suggestions.extend(data[1])
+            except Exception as e:
+                print(f"Topic Generator: Failed to get Google suggestions for '{query}': {e}")
+            time.sleep(0.5)
+            
+        seen = set()
+        deduped = []
+        for s in suggestions:
+            s_clean = s.strip().lower()
+            if s_clean not in seen and len(s_clean) > 3:
+                seen.add(s_clean)
+                deduped.append(s)
+                
+        return deduped[:8]
+
+    def _get_trending_keywords_for_category(self, category: str, product: str) -> List[str]:
+        # 1. Try local trending_keywords.json
+        trending_data = self._load_trending_keywords()
+        # Case-insensitive category match
+        for cat_name, keywords in trending_data.items():
+            if cat_name.lower().strip() == category.lower().strip():
+                if isinstance(keywords, list):
+                    return keywords
+
+        # 2. Fallback to Google Autocomplete suggestions
+        print(f"No local trending keywords for category '{category}'. Fetching dynamically from Google Autocomplete...")
+        google_suggestions = self._get_google_search_suggestions(product)
+        if google_suggestions:
+            global_trends = trending_data.get("global", [])
+            if isinstance(global_trends, list):
+                google_suggestions.extend(global_trends)
+            return google_suggestions
+
+        # 3. Fallback to global list or empty
+        global_trends = trending_data.get("global", [])
+        if isinstance(global_trends, list):
+            return global_trends
+        return []
+
+    @staticmethod
+    def _slugify(title: str, evergreen: bool = True) -> str:
+        s = title.lower().strip()
+        if evergreen:
+            s = re.sub(r'\b20\d{2}\b', '', s)
+        s = re.sub(r'[^\w\s-]', '', s)
+        s = re.sub(r'[\s_]+', '-', s)
+        s = re.sub(r'-+', '-', s)
+        return s.strip('-')
+
     def _is_duplicate(self, title: str, history: List[Dict[str, str]]) -> bool:
-        normalized = title.strip().lower()
-        return any(normalized == entry["title"].strip().lower() for entry in history)
+        norm_title = title.strip().lower()
+        new_slug = self._slugify(title)
+        new_words = set(w for w in re.findall(r'\w+', norm_title) if len(w) > 3)
+
+        for entry in history:
+            entry_title = entry.get("title", "").strip().lower()
+            if not entry_title:
+                continue
+            if norm_title == entry_title:
+                return True
+            entry_slug = self._slugify(entry_title)
+            if new_slug and entry_slug and new_slug == entry_slug:
+                return True
+            # Near duplicate similarity check for same/similar topics
+            entry_words = set(w for w in re.findall(r'\w+', entry_title) if len(w) > 3)
+            if new_words and entry_words:
+                overlap = new_words & entry_words
+                union = new_words | entry_words
+                if len(overlap) >= 3 and len(overlap) / len(union) >= 0.8:
+                    return True
+        return False
+
+    DISALLOWED_CURRENCY_PATTERNS = [
+        re.compile(r'\b(naira|rupees?|rs\.?\s*\d+|in\s+india|in\s+nigeria)\b', re.IGNORECASE),
+    ]
+
+    def _currency_violation(self, title: str) -> bool:
+        return any(pattern.search(title) for pattern in self.DISALLOWED_CURRENCY_PATTERNS)
 
     # Matches a standalone 4-digit year like 2024, 2026, 2031 -- not part of
     # a longer number (e.g. won't match the "2024" inside "SM-2024X").
@@ -207,7 +313,7 @@ class TopicGenerator:
 
     # -- prompt -----------------------------------------------------------
 
-    def _build_prompt(self, category: str, product: str, article_type: str) -> str:
+    def _build_prompt(self, category: str, product: str, article_type: str, trending_keywords: List[str] = None) -> str:
         current_year = datetime.now().year
 
         # Only surface the actual year number when this format is allowed to
@@ -225,8 +331,13 @@ Do not include any year anywhere in the title, in any form (not "for", "in",
 parentheses, or as a suffix), unless comparing specific named model years
 (e.g. "iPhone 15 vs iPhone 16")."""
 
-        return f"""You are an SEO strategist for Ejiro Inspire.
+        trends_context = ""
+        if trending_keywords:
+            trends_str = "\n".join(f"- {k}" for k in trending_keywords)
+            trends_context = f"\nTARGET TRENDING TOPICS / POPULAR SEARCH QUERIES:\n{trends_str}\n\nMake sure the generated article topic and primary keyword align with or target one of these popular search trends to drive traffic.\n"
 
+        return f"""You are an SEO strategist for Ejiro Inspire.
+{trends_context}
 Today's category: {category}
 Focus on: {product}
 Article format: {article_type}
@@ -240,6 +351,7 @@ CRITICAL TITLE RULES:
 - Keep the title extremely short, punchy, and under 65 characters total. 
 - Maximum of 8 words. 
 - Do NOT use colons (:) or long subtitles.
+- Standardize all currency/prices to USD ($) or generic budget terms (e.g. "Under $100", "Budget"). Never use regional currencies (Naira, Rupees, etc.) or regional country suffixes.
 {year_instructions}
 
 Return ONLY valid JSON in this exact shape:
@@ -261,7 +373,10 @@ Return ONLY valid JSON in this exact shape:
             category = self._pick_category(history)
             product = random.choice(self.CATEGORIES[category])
             article_type = random.choice(self.FORMATS)
-            prompt = self._build_prompt(category, product, article_type)
+            trending_keywords = self._get_trending_keywords_for_category(category, product)
+            if trending_keywords:
+                print(f"Topic Generator: Targeting trending keywords for '{product}': {trending_keywords}")
+            prompt = self._build_prompt(category, product, article_type, trending_keywords)
 
             try:
                 response = self.client.generate(
@@ -274,7 +389,7 @@ Return ONLY valid JSON in this exact shape:
                     },
                 )
 
-                topic = json.loads(response["response"])
+                topic = extract_json(response["response"])
 
                 required = ["type", "title", "category", "primary_keyword", "secondary_keywords"]
                 for field in required:
@@ -302,6 +417,9 @@ Return ONLY valid JSON in this exact shape:
                     raise ValueError(
                         f"Type mismatch: expected {article_type}, got {topic['type']}"
                     )
+
+                if self._currency_violation(topic["title"]):
+                    raise ValueError(f"Disallowed regional currency in title: {topic['title']}")
 
                 year_issue = self._year_violation(topic["title"], article_type)
                 if year_issue:

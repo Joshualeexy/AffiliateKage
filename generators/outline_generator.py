@@ -1,6 +1,7 @@
 import json
 import string
-from services.ollama_client import OllamaClient
+from datetime import datetime
+from services.ollama_client import OllamaClient, extract_json
 from services.prompt_loader import load_prompt
 from generators.classifier import ArticleType
 
@@ -15,7 +16,18 @@ class OutlineGenerator:
             prompt_template = string.Template(load_prompt("outline"))
             research_context = ""
             if research_report and research_report.results:
-                research_context = "RESEARCH CONTEXT:\n" + research_report.results[0].content[:2000]
+                context_parts = []
+                total_len = 0
+                for idx, r in enumerate(research_report.results):
+                    part = f"--- Source {idx+1}: {r.title} ({r.url}) ---\n{r.content}"
+                    if total_len + len(part) > 3000:
+                        remaining = 3000 - total_len
+                        if remaining > 200:
+                            context_parts.append(part[:remaining] + "\n[Truncated...]")
+                        break
+                    context_parts.append(part)
+                    total_len += len(part)
+                research_context = "RESEARCH CONTEXT:\n" + "\n\n".join(context_parts)
                 
             prompt = prompt_template.safe_substitute(
                 title=topic.get("title", ""),
@@ -23,7 +35,7 @@ class OutlineGenerator:
                 category=topic.get("category", ""),
                 primary_keyword=topic.get("primary_keyword", ""),
                 secondary_keywords=", ".join(topic.get("secondary_keywords", [])),
-                year="2026",
+                year=str(datetime.now().year),
                 research_context=research_context
             )
         except Exception:
@@ -36,7 +48,7 @@ class OutlineGenerator:
 
         try:
             response = self.client.generate(prompt=prompt, format="json", options={"temperature": 0.4})
-            return json.loads(response["response"])
+            return extract_json(response["response"])
         except Exception as e:
             print(f"Outline generation failed: {e}")
             return {"sections": []}

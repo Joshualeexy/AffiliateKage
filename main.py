@@ -17,6 +17,7 @@ from generators.outline_generator import OutlineGenerator
 from generators.entity_extractor import EntityExtractor
 from generators.content_sanitizer import ContentSanitizer
 from generators.internal_link_injector import InternalLinkInjector
+from generators.affiliate_link_injector import AffiliateLinkInjector
 from validation.article_validator import ArticleValidator
 from research.crawl4ai_provider import Crawl4AiProvider
 from research.duckduckgo import DuckDuckGoProvider
@@ -56,6 +57,7 @@ def run_pipeline(
     entity_extractor: EntityExtractor,
     content_sanitizer: ContentSanitizer,
     internal_link_injector: InternalLinkInjector,
+    affiliate_link_injector: AffiliateLinkInjector,
 ) -> None:
     state = load_state() or {"stage": "start", "status": "running"}
 
@@ -162,7 +164,7 @@ def run_pipeline(
 
                 # 5.5 Sanitize Article (code-only, instant)
                 print("Starting stage: Sanitize Article")
-                article["content"] = content_sanitizer.sanitize(article["content"])
+                article["content"] = content_sanitizer.sanitize(article["content"], article_type_enum)
                 article["title"] = content_sanitizer.sanitize_plain_text(article["title"])
                 article["seo_title"] = content_sanitizer.sanitize_plain_text(article["seo_title"])
                 print("Completed stage: Sanitize Article")
@@ -243,7 +245,18 @@ def run_pipeline(
         # 9. Markdown Conversion
         if state["stage"] == "internal_links_injected":
             print("Starting stage: Convert Markdown -> HTML")
-            state["article"]["content"] = to_html(state["article"]["content"])
+            html_content = to_html(state["article"]["content"])
+            print("Applying affiliate links...")
+            try:
+                affiliate_links = api.get_affiliate_links()
+                if affiliate_links:
+                    html_content = affiliate_link_injector.inject(html_content, affiliate_links)
+                    print(f"Applied affiliate link patterns. Total: {len(affiliate_links)}")
+                else:
+                    print("No affiliate links configured on backend.")
+            except Exception as e:
+                print(f"Warning: Failed to fetch or inject affiliate links: {e}")
+            state["article"]["content"] = html_content
             print("Completed stage: Convert Markdown -> HTML")
             state["stage"] = "markdown_converted"
             save_state(state)
@@ -329,12 +342,13 @@ def main(clear_saved_state: bool = False):
         entity_extractor = EntityExtractor()
         content_sanitizer = ContentSanitizer()
         internal_link_injector = InternalLinkInjector()
+        affiliate_link_injector = AffiliateLinkInjector()
 
         while True:
             run_pipeline(
                 api, comfy, topic_generator, article_generator, image_prompt_generator,
                 classifier, researcher, outline_generator, validator, entity_extractor,
-                content_sanitizer, internal_link_injector,
+                content_sanitizer, internal_link_injector, affiliate_link_injector,
             )
 
             if STATE_PATH.exists():

@@ -2,8 +2,9 @@ import json
 import os
 import string
 import time
+from datetime import datetime
 from typing import Any, Dict
-from services.ollama_client import OllamaClient
+from services.ollama_client import OllamaClient, extract_json
 from services.prompt_loader import load_prompt
 from generators.classifier import ArticleType
 from research.base import ResearchReport
@@ -26,7 +27,18 @@ class ArticleGenerator:
 
         research_context = ""
         if research_report and research_report.results:
-            research_context = "RESEARCH CONTEXT:\n" + research_report.results[0].content[:3000]
+            context_parts = []
+            total_len = 0
+            for idx, r in enumerate(research_report.results):
+                part = f"--- Source {idx+1}: {r.title} ({r.url}) ---\n{r.content}"
+                if total_len + len(part) > 4500:
+                    remaining = 4500 - total_len
+                    if remaining > 200:
+                        context_parts.append(part[:remaining] + "\n[Truncated...]")
+                    break
+                context_parts.append(part)
+                total_len += len(part)
+            research_context = "RESEARCH CONTEXT:\n" + "\n\n".join(context_parts)
 
         outline_str = json.dumps(outline, indent=2)
 
@@ -35,7 +47,7 @@ class ArticleGenerator:
             category=topic.get("category", ""),
             primary_keyword=topic.get("primary_keyword", ""),
             secondary_keywords=", ".join(topic.get("secondary_keywords", [])),
-            year="2026",
+            year=str(datetime.now().year),
             outline=outline_str,
             research_context=research_context,
             style_guide=load_prompt("style_guide")
@@ -49,7 +61,7 @@ class ArticleGenerator:
                     options={"temperature": 0.6},
                 )
 
-                article = json.loads(response["response"])
+                article = extract_json(response["response"])
 
                 required = ["title", "excerpt", "seo_title", "meta_description", "content"]
                 for field in required:
