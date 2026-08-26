@@ -190,22 +190,20 @@ class TopicGenerator:
         # Case-insensitive category match
         for cat_name, keywords in trending_data.items():
             if cat_name.lower().strip() == category.lower().strip():
-                if isinstance(keywords, list):
+                if isinstance(keywords, list) and keywords:
                     return keywords
 
         # 2. Fallback to Google Autocomplete suggestions
         print(f"No local trending keywords for category '{category}'. Fetching dynamically from Google Autocomplete...")
         google_suggestions = self._get_google_search_suggestions(product)
         if google_suggestions:
-            global_trends = trending_data.get("global", [])
-            if isinstance(global_trends, list):
-                google_suggestions.extend(global_trends)
             return google_suggestions
 
-        # 3. Fallback to global list or empty
-        global_trends = trending_data.get("global", [])
-        if isinstance(global_trends, list):
-            return global_trends
+        # 3. Fallback to category search if product search returned nothing
+        cat_suggestions = self._get_google_search_suggestions(category)
+        if cat_suggestions:
+            return cat_suggestions
+
         return []
 
     @staticmethod
@@ -353,6 +351,10 @@ CRITICAL TITLE RULES:
 - Do NOT use colons (:) or long subtitles.
 - Standardize all currency/prices to USD ($) or generic budget terms (e.g. "Under $100", "Budget"). Never use regional currencies (Naira, Rupees, etc.) or regional country suffixes.
 {year_instructions}
+
+KEYWORD RULES:
+- secondary_keywords must be 3-5 specific, natural search phrases directly related to the product/topic.
+- Do NOT include generic, unrelated site-wide buzzwords (e.g. do not add 'eco-friendly' or 'smart devices' unless the article is specifically about them).
 
 Return ONLY valid JSON in this exact shape:
 
