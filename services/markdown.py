@@ -2,10 +2,60 @@ import markdown
 import re
 
 
+# -- Disclosure Templates --------------------------------------------------
+
+AMAZON_DISCLOSURE = (
+    '<div class="affiliate-disclosure" style="background-color: #f8fafc; '
+    'border-left: 4px solid #3b82f6; padding: 12px 16px; margin-bottom: 24px; '
+    'font-size: 0.875rem; color: #475569; border-radius: 4px; line-height: 1.5;">'
+    '<strong>Affiliate Disclosure:</strong> As an Amazon Associate and affiliate partner, '
+    'we may earn commissions from qualifying purchases made through links on this page at no extra cost to you.'
+    '</div>\n'
+)
+
+GENERAL_AFFILIATE_DISCLOSURE = (
+    '<div class="affiliate-disclosure" style="background-color: #f8fafc; '
+    'border-left: 4px solid #8b5cf6; padding: 12px 16px; margin-bottom: 24px; '
+    'font-size: 0.875rem; color: #475569; border-radius: 4px; line-height: 1.5;">'
+    '<strong>Disclosure:</strong> Some links on this page are affiliate links. '
+    'We may earn a commission if you sign up through our links, at no extra cost to you. '
+    'This helps support our editorial work.'
+    '</div>\n'
+)
+
+
+def _detect_disclosure_type(html: str) -> str | None:
+    """Determine which disclosure to show based on the links present in the HTML.
+    
+    Returns:
+        'amazon' if Amazon product links are present.
+        'general' if other external affiliate-style links are present.
+        None if no affiliate links detected.
+    """
+    if 'amazon.com' in html.lower():
+        return 'amazon'
+    
+    # Check for common affiliate / SaaS referral patterns
+    affiliate_indicators = [
+        'ref=', 'tag=', 'affiliate', 'partner', 'referral',
+        'shareasale', 'commission', 'awin', 'cj.com', 'impact.com',
+    ]
+    lower_html = html.lower()
+    for indicator in affiliate_indicators:
+        if indicator in lower_html:
+            return 'general'
+    
+    # Check for external links with rel="nofollow sponsored"
+    if 'rel="nofollow sponsored' in lower_html:
+        return 'general'
+    
+    return None
+
+
 def to_html(markdown_text: str, include_disclosure: bool = True) -> str:
     """
     Convert Markdown text to HTML with table, fenced code extensions,
-    FTC affiliate disclosure, and SEO/monetization compliance attributes.
+    context-aware affiliate disclosure, and SEO/monetization compliance attributes.
 
     Args:
         markdown_text (str): The Markdown text to convert
@@ -19,17 +69,14 @@ def to_html(markdown_text: str, include_disclosure: bool = True) -> str:
         extensions=['tables', 'fenced_code']
     )
 
-    # -- Step 1: Prepend FTC Affiliate Disclosure -------------------------
-    if include_disclosure and "Affiliate Disclosure:" not in html:
-        disclosure_html = (
-            '<div class="affiliate-disclosure" style="background-color: #f8fafc; '
-            'border-left: 4px solid #3b82f6; padding: 12px 16px; margin-bottom: 24px; '
-            'font-size: 0.875rem; color: #475569; border-radius: 4px; line-height: 1.5;">'
-            '<strong>Affiliate Disclosure:</strong> As an Amazon Associate and affiliate partner, '
-            'we may earn commissions from qualifying purchases made through links on this page at no extra cost to you.'
-            '</div>\n'
-        )
-        html = disclosure_html + html
+    # -- Step 1: Context-Aware Affiliate Disclosure -----------------------
+    if include_disclosure and "Affiliate Disclosure:" not in html and "Disclosure:" not in html:
+        disclosure_type = _detect_disclosure_type(html)
+        if disclosure_type == 'amazon':
+            html = AMAZON_DISCLOSURE + html
+        elif disclosure_type == 'general':
+            html = GENERAL_AFFILIATE_DISCLOSURE + html
+        # If None, omit disclosure entirely (pure informational article)
 
     # -- Step 2: Inject inline styles on headings -------------------------
     _HEADING_STYLES = {
@@ -69,7 +116,7 @@ def to_html(markdown_text: str, include_disclosure: bool = True) -> str:
     # -- Step 4: Add rel="nofollow sponsored noopener" & target="_blank" to external links ---
     def _modify_link(match: re.Match) -> str:
         attrs = match.group(1)
-        href_match = re.search(r'href=[\"\']([^\"\']+)[\"\']', attrs, re.IGNORECASE)
+        href_match = re.search(r'href=[\"\']([ ^\"\']+)[\"\']', attrs, re.IGNORECASE)
         if not href_match:
             return match.group(0)
         href = href_match.group(1).lower()
@@ -79,7 +126,7 @@ def to_html(markdown_text: str, include_disclosure: bool = True) -> str:
             return match.group(0)
 
         # External / Affiliate link: apply nofollow sponsored and target="_blank"
-        attrs_clean = re.sub(r'\s*(rel|target)=[\"\'][^\"\']*[\"\']', '', attrs, flags=re.IGNORECASE)
+        attrs_clean = re.sub(r'\s*(rel|target)=[\"\']([ ^\"\']*)[\"\']\s*', '', attrs, flags=re.IGNORECASE)
         return f'<a{attrs_clean} target="_blank" rel="nofollow sponsored noopener">'
 
     html = re.sub(r'<a\b([^>]*)>', _modify_link, html, flags=re.IGNORECASE)
@@ -100,6 +147,21 @@ def to_html(markdown_text: str, include_disclosure: bool = True) -> str:
     html = re.sub(
         r'<td(?![^>]*style=)([^>]*)>',
         r'<td\1 style="border: 1px solid #e2e8f0; padding: 10px 14px; text-align: left;">',
+        html,
+        flags=re.IGNORECASE,
+    )
+
+    # -- Step 6: Style YouTube embeds for responsive display ---------------
+    html = re.sub(
+        r'<iframe([^>]*(?:youtube|youtube-nocookie)[^>]*)>',
+        lambda m: f'<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; margin: 24px 0; border-radius: 12px;"><iframe{m.group(1)} style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; border-radius: 12px;" allowfullscreen>',
+        html,
+        flags=re.IGNORECASE,
+    )
+    # Close the responsive wrapper div after the iframe closing tag
+    html = re.sub(
+        r'(</iframe>)(\s*</div>)?',
+        lambda m: m.group(0) if m.group(2) else f'{m.group(1)}</div>',
         html,
         flags=re.IGNORECASE,
     )

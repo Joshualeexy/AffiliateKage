@@ -2,10 +2,9 @@ import json
 import re
 import os
 from pathlib import Path
-from urllib.parse import quote_plus
 from typing import Dict, List, Any
 
-from services.ollama_client import OllamaClient
+from services.ollama_client import OllamaClient, extract_json
 from services.prompt_loader import load_prompt
 
 
@@ -19,10 +18,10 @@ _verified_posts_cache: list | None = None
 class InternalLinkInjector:
     """Injects validated internal links into article Markdown content.
 
-    Works in three steps:
+    Works in three targeted steps:
     1. Fetch & score: get published posts, score relevance to current article.
-    2. LLM injection:  ask the model to weave 1-3 links naturally into the text.
-    3. Strip fakes:    remove any hallucinated internal links that slipped through.
+    2. LLM extraction: ask the model for 1-3 targeted link placements as JSON.
+    3. Deterministic injection: perform safe, exact substring replacements in Python.
     """
 
     SITE_DOMAIN = "ejiroinspire.com"
@@ -41,7 +40,7 @@ class InternalLinkInjector:
         entities: List[Dict[str, str]],
         api_client: Any,
     ) -> str:
-        """Run the full internal-link injection pipeline.
+        """Run the targeted internal-link injection pipeline.
 
         Args:
             content:    Article Markdown (post-validation, pre-HTML).
@@ -76,11 +75,12 @@ class InternalLinkInjector:
             print("Internal Link Injector: No relevant posts found. Skipping.")
             return content
 
-        # Step B: Ask the LLM to inject links
-        content = self._llm_inject(content, top_posts)
-
-        # Step C: Strip any hallucinated internal links
         valid_slugs = {p["slug"] for p in published}
+
+        # Step B: Get targeted JSON placements from LLM and inject deterministically
+        content = self._json_inject(content, top_posts, valid_slugs)
+
+        # Step C: Extra safety strip for any hallucinated links
         content = self._strip_hallucinated_links(content, valid_slugs)
 
         return content
@@ -101,7 +101,6 @@ class InternalLinkInjector:
             print(f"Internal Link Injector: API endpoint failed: {e}")
 
         if posts is not None:
-            # API returned data; normalize it
             normalized = []
             for p in posts:
                 title = p.get("title", "").strip()
@@ -112,7 +111,7 @@ class InternalLinkInjector:
             print(f"Internal Link Injector: Loaded {len(normalized)} posts from API.")
             return normalized
 
-        # Fallback: read generated_topics.json and verify via topic_exists
+        # Fallback: read generated_topics.json
         print("Internal Link Injector: API endpoint not available. Using fallback.")
         return self._fallback_get_posts(api_client)
 
@@ -156,8 +155,6 @@ class InternalLinkInjector:
         entities: List[Dict[str, str]],
     ) -> list:
         """Score candidates by keyword overlap with the current article."""
-
-        # Build the keyword set from the current article
         keywords: set[str] = set()
 
         title_words = topic.get("title", "").lower().split()
@@ -178,7 +175,6 @@ class InternalLinkInjector:
             name = entity.get("name", "").lower() if isinstance(entity, dict) else ""
             keywords.update(w for w in name.split() if len(w) > 2)
 
-        # Remove common stop words that would inflate scores
         stop_words = {
             "the", "and", "for", "with", "you", "your", "that", "this",
             "from", "are", "how", "what", "which", "best", "top", "our",
@@ -193,7 +189,6 @@ class InternalLinkInjector:
         if not keywords:
             return candidates
 
-        # Score each candidate
         scored = []
         for candidate in candidates:
             title_lower = candidate["title"].lower()
@@ -205,51 +200,120 @@ class InternalLinkInjector:
         scored.sort(key=lambda x: x["_score"], reverse=True)
         return scored
 
-    # ── Step B: LLM Injection ─────────────────────────────────────
+    # ── Step B: Targeted JSON Extraction & Python Replacement ─────
 
-    def _llm_inject(self, content: str, top_posts: list) -> str:
-        """Ask the LLM to inject internal links into the article."""
+    def _json_inject(self, content: str, top_posts: list, valid_slugs: set) -> str:
+        """Extract anchor placements as JSON and inject links safely via Python."""
+        # Create a lightweight overview (headings + first few paragraphs)
+        lines = content.split('\n')
+        overview_lines = []
+        para_count = 0
+        for line in lines:
+            stripped = line.strip()
+            if stripped.startswith('#'):
+                overview_lines.append(stripped)
+            elif stripped and para_count < 4:
+                overview_lines.append(stripped)
+                para_count += 1
+
+        overview_text = '\n'.join(overview_lines)[:2000]
+
         related_posts_str = "\n".join(
-            f"- {p['title']} | {self.BLOG_BASE}/{p['slug']}"
+            f"- {p['title']} | Slug: {p['slug']}"
             for p in top_posts
         )
 
         try:
             prompt = load_prompt(
                 "internal_links",
-                article_content=content,
+                article_overview=overview_text,
                 related_posts=related_posts_str,
             )
-        except FileNotFoundError:
-            # Inline fallback if prompt file is missing
+        except Exception:
             prompt = (
-                f"Read this article and inject 1-3 internal links from the list below.\n"
-                f"Use descriptive anchor text. Return ONLY the modified article.\n\n"
-                f"ARTICLE:\n{content}\n\n"
-                f"RELATED POSTS:\n{related_posts_str}\n"
+                f"Identify 1-3 internal link placements from the related posts list.\n"
+                f"ARTICLE OVERVIEW:\n{overview_text}\n\n"
+                f"RELATED POSTS:\n{related_posts_str}\n\n"
+                f"Return ONLY valid JSON: {{\"placements\": [{{\"target_phrase\": \"phrase in text\", \"slug\": \"slug\", \"anchor_text\": \"anchor\"}}]}}"
             )
 
         try:
             response = self.client.generate(
                 prompt=prompt,
-                options={"temperature": 0.3},
+                format="json",
+                options={"temperature": 0.1},
             )
-            result = response.get("response", "").strip()
+            data = extract_json(response.get("response", ""))
+            placements = data.get("placements", []) if isinstance(data, dict) else []
 
-            # Basic sanity: result should still look like a Markdown article
-            if len(result) < len(content) * 0.5:
-                print("Internal Link Injector: LLM response too short. Keeping original.")
-                return content
+            injected_count = 0
+            for placement in placements:
+                if not isinstance(placement, dict):
+                    continue
+                target_phrase = placement.get("target_phrase", "").strip()
+                slug = placement.get("slug", "").strip()
+                anchor_text = placement.get("anchor_text", "").strip() or target_phrase
 
-            if "##" not in result:
-                print("Internal Link Injector: LLM response missing headings. Keeping original.")
-                return content
+                if not target_phrase or not slug or slug not in valid_slugs:
+                    continue
 
-            return result
+                if injected_count >= 3:
+                    break
+
+                # Attempt safe deterministic line replacement
+                new_content, replaced = self._replace_target_phrase(content, target_phrase, slug, anchor_text)
+                if replaced:
+                    content = new_content
+                    injected_count += 1
+                    print(f"Internal Link Injector: Injected link for '{anchor_text}' -> /blog/{slug}")
+
+            return content
 
         except Exception as e:
-            print(f"Internal Link Injector: LLM call failed: {e}. Keeping original.")
+            print(f"Internal Link Injector: Targeted JSON injection failed: {e}. Keeping content unchanged.")
             return content
+
+    @classmethod
+    def _replace_target_phrase(cls, content: str, target_phrase: str, slug: str, anchor_text: str) -> tuple[str, bool]:
+        """Safely replaces the first occurrence of target_phrase that is outside headings, links, code, and tables."""
+        url = f"{cls.BLOG_BASE}/{slug}"
+        link_md = f"[{anchor_text}]({url})"
+
+        lines = content.split('\n')
+        in_code_block = False
+
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+
+            if stripped.startswith('```'):
+                in_code_block = not in_code_block
+                continue
+
+            if in_code_block or stripped.startswith('#') or '|' in stripped:
+                continue
+
+            # Skip if target_phrase is not in this line
+            pattern = re.compile(rf'\b({re.escape(target_phrase)})\b', re.IGNORECASE)
+            match = pattern.search(line)
+            if not match:
+                continue
+
+            idx = match.start(1)
+            end_idx = match.end(1)
+
+            # Ensure we're not inside an existing markdown link: [ ... ] or ( ... )
+            before = line[:idx]
+            if '[' in before:
+                last_open_bracket = before.rfind('[')
+                between = before[last_open_bracket:]
+                if '](' not in between and ')' not in between:
+                    continue
+
+            # Replace this single line
+            lines[i] = line[:idx] + link_md + line[end_idx:]
+            return '\n'.join(lines), True
+
+        return content, False
 
     # ── Step C: Strip hallucinated links ──────────────────────────
 
@@ -277,8 +341,7 @@ class InternalLinkInjector:
         slug = title.lower().strip()
         if evergreen:
             slug = re.sub(r'\b20\d{2}\b', '', slug)
-        slug = re.sub(r'[^\w\s-]', '', slug)   # Remove special chars except hyphens
-        slug = re.sub(r'[\s_]+', '-', slug)     # Spaces/underscores to hyphens
-        slug = re.sub(r'-+', '-', slug)         # Collapse multiple hyphens
-        slug = slug.strip('-')
-        return slug
+        slug = re.sub(r'[^\w\s-]', '', slug)
+        slug = re.sub(r'[\s_]+', '-', slug)
+        slug = re.sub(r'-+', '-', slug)
+        return slug.strip('-')

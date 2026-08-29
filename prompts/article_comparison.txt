@@ -34,7 +34,7 @@ COMPARISON STRUCTURE:
 - Give each contender its own section with strengths, weaknesses, and ideal buyer. Format key specifications for each contender as a bullet list, and wrap expert quotes/callouts in blockquotes (`>`).
 - Include "Winner By Use Case" with direct recommendations for different reader needs. Use `✅` and `❌` lists to highlight specific matchings.
 - Explain when the runner-up is actually the smarter choice.
-- End with a decisive verdict. At the end of the verdict section, wrap the final decision summary in Markdown blockquote syntax (`>`) and use ratings stars or checkmarks to summarize the outcome, followed by an affiliate disclaimer note. Do not use the heading "Conclusion", "Summary", or "Final Thoughts".
+- End with a decisive verdict. At the end of the verdict section, wrap the final decision summary in Markdown blockquote syntax (`>`) and use ratings stars or checkmarks to summarize the outcome. Do not use the heading "Conclusion", "Summary", or "Final Thoughts".
 
 STYLE:
 - Compare directly. Do not describe products in isolation.

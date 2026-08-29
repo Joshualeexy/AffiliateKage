@@ -33,7 +33,7 @@ LISTICLE STRUCTURE:
 - Use category-led picks such as "Best Overall", "Best Budget", "Best Premium", and "Best for Small Spaces" instead of plain numbered items.
 - For each pick, explain who it is for, what it does well, what it gets wrong, and when to choose something else. Format each pick's key specs/dimensions as a bullet list, and wrap key expert quotes or callouts in blockquotes (`>`).
 - Include a short buying advice section after the picks.
-- End with a clear top recommendation and runner-up. Wrap the final recommendation summary in Markdown blockquote syntax (`>`) and use ratings stars or `✅` lists to highlight recommendations, followed by an affiliate disclaimer note. Do not use the heading "Conclusion", "Summary", or "Final Thoughts".
+- End with a clear top recommendation and runner-up. Wrap the final recommendation summary in Markdown blockquote syntax (`>`) and use ratings stars or `✅` lists to highlight recommendations. Do not use the heading "Conclusion", "Summary", or "Final Thoughts".
 
 STYLE:
 - Sound like a careful editor who has narrowed the field for the reader.

@@ -35,7 +35,7 @@ BUYING GUIDE STRUCTURE:
   - Format its technical specifications or dimensions as a bullet list or blockquote.
   - Wrap any highlighted key takeaways, expert quotes, or crucial callouts in Markdown blockquote syntax (`>`).
 - Include a section explaining how to choose based on budget, use case, and must-have features.
-- End with a decisive recommendation naming the top pick and runner-up. Include a "Recommendation Summary" list at the end using `✅` and `❌` emojis (e.g., `For Small Spaces: ✅ Highly Recommended`) followed by an affiliate disclaimer note. Do not use the heading "Conclusion", "Summary", or "Final Thoughts".
+- End with a decisive recommendation naming the top pick and runner-up. Include a "Recommendation Summary" list at the end using `✅` and `❌` emojis (e.g., `For Small Spaces: ✅ Highly Recommended`). Do not use the heading "Conclusion", "Summary", or "Final Thoughts".
 
 STYLE:
 - Sound like an experienced editor helping a reader spend wisely.

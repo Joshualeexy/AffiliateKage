@@ -1,4 +1,5 @@
 import os
+import re
 from services.ollama_client import OllamaClient
 
 
@@ -11,45 +12,54 @@ class ImagePromptGenerator:
         )
         self.client = OllamaClient(self.model_name)
 
-    def generate(self, topic, article) -> str:
+    def generate(self, topic: dict, article: dict) -> str:
+        prompt = f"""You are an expert Stable Diffusion XL commercial product photographer.
 
-        prompt = f"""
-You are an expert Stable Diffusion XL prompt engineer.
+Create a positive descriptive prompt for an ultra-high-end commercial featured image.
 
-Generate ONE prompt for a blog featured image.
+Product Subject: {topic.get("category", "")} - {topic.get("title", "")}
+Context: {article.get("excerpt", "")[:200]}
 
-Requirements:
+CRITICAL SDXL RULES:
+- Describe ONLY physical visual elements: product materials (brushed aluminum, matte polycarbonate, glass), studio lighting (softbox, edge rim light), surface (minimalist clean desk, marble countertop), and camera angle.
+- DO NOT mention words like "no text", "no logos", "no watermark" in the positive prompt (negatives are handled separately).
+- DO NOT include prices, numbers, years (e.g. $100, 2026), or SEO words like "review", "buying guide", "best".
+- Keep the prompt under 50 words, focusing on commercial studio quality.
 
-- Photorealistic
-- Professional
-- Modern
-- Premium lighting
-- High detail
-- 16:9 composition
-- Clean background
-- No people unless necessary
-- No text
-- No logos
-- No watermark
-- Suitable for a technology or consumer review website
+Return ONLY the raw prompt text with no explanation."""
 
-Topic:
+        response = self.client.generate(prompt=prompt)
+        raw_prompt = response.get("response", "").strip()
 
-{topic["title"]}
+        # Sanitize prompt to eliminate any accidental text/price leakage
+        cleaned = self._clean_prompt(raw_prompt, topic)
+        print(f"Generated Clean Image Prompt: {cleaned}")
+        return cleaned
 
-Article excerpt:
+    @staticmethod
+    def _clean_prompt(prompt_text: str, topic: dict) -> str:
+        """Strip negative words, prices, and SEO noise that trigger SDXL text generators."""
+        # Remove quotes or markdown wrappers
+        text = prompt_text.replace('"', '').replace('`', '').strip()
+        if text.lower().startswith("prompt:"):
+            text = text[7:].strip()
 
-{article["excerpt"]}
+        # Remove negative phrases that accidentally trigger text drawing in CLIP
+        neg_phrases = [
+            r'\bno text\b', r'\bno logos?\b', r'\bno watermarks?\b', r'\bwithout text\b',
+            r'\bno words\b', r'\bno letters\b', r'\bno people\b', r'\bunder \$\d+\b',
+            r'\$\d+', r'\b20\d{2}\b', r'\breview\b', r'\bbuying guide\b', r'\bcomparison\b'
+        ]
+        for pat in neg_phrases:
+            text = re.sub(pat, '', text, flags=re.IGNORECASE)
 
-Return ONLY the image prompt.
-"""
+        # Collapse whitespace and trailing punctuation
+        text = re.sub(r'\s{2,}', ' ', text).strip(' ,.-')
+        if not text or len(text) < 15:
+            cat = topic.get("category", "tech gadget")
+            text = f"Commercial studio product photography of modern {cat}, clean minimalist aesthetic, soft studio lighting, high resolution, 8k"
 
-        response = self.client.generate(
-            prompt=prompt,
-        )
-
-        print(response["response"].strip())
-        return response["response"].strip()
+        return text
 
     def unload(self) -> None:
         try:

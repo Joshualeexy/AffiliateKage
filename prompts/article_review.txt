@@ -36,7 +36,7 @@ REVIEW STRUCTURE:
 - Include "Real-World Performance Testimonials" or "Professional Reviews" and format the quotes using Markdown blockquote syntax (`>`).
 - Include "Who Should Buy It" and "Who Should Skip It".
 - Name a realistic alternative and explain when that alternative is better.
-- End with a decisive verdict. At the very end of the verdict section, include a "Final Rating" line using stars (e.g., `Final Rating: ⭐⭐⭐⭐☆ (4.5/5)`) followed by an affiliate disclaimer note. Do not use the heading "Conclusion", "Summary", or "Final Thoughts".
+- End with a decisive verdict. At the very end of the verdict section, include a "Final Rating" line using stars (e.g., `Final Rating: ⭐⭐⭐⭐☆ (4.5/5)`). Do not use the heading "Conclusion", "Summary", or "Final Thoughts".
 
 STYLE:
 - Sound like a practical reviewer, not a spec sheet.

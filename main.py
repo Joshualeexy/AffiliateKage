@@ -25,6 +25,7 @@ from research.duckduckgo import DuckDuckGoProvider
 from services.api import ApiClient
 from services.comfy import ComfyClient
 from services.markdown import to_html
+from services.image_fetcher import ImageFetcher
 
 STATE_PATH = Path("pipeline_state.json")
 MAX_VALIDATION_RETRIES = 3
@@ -218,14 +219,42 @@ def run_pipeline(
                 state.update({"stage": "entities_extracted", "entities": entities})
                 save_state(state)
 
-        # 7.5 Enforce Amazon Links (code-only, instant)
+        # 7.5 Fetch Product Images (code-only, instant)
+        product_images = state.get("product_images", {})
+        if state["stage"] == "entities_extracted" and not product_images:
+            print("Starting stage: Fetch Product Images")
+            try:
+                category = topic.get("category", "") if topic else ""
+                product_images = ImageFetcher.fetch_product_images(
+                    state.get("entities", []),
+                    max_items=3
+                )
+                state["product_images"] = product_images
+                print(f"Completed stage: Fetch Product Images — Found {len(product_images)} images")
+            except Exception as e:
+                print(f"Warning: Image fetching failed: {e}. Continuing without product images.")
+                state["product_images"] = {}
+
+        # 7.6 Enforce Smart Entity Links (code-only, instant)
         if state["stage"] == "entities_extracted":
-            print("Starting stage: Enforce Amazon Links")
+            print("Starting stage: Enforce Smart Entity Links")
+            category = topic.get("category", "") if topic else ""
             state["article"]["content"] = content_sanitizer.enforce_amazon_links(
                 state["article"]["content"],
                 state.get("entities", []),
+                category=category,
             )
-            print("Completed stage: Enforce Amazon Links")
+            print("Completed stage: Enforce Smart Entity Links")
+
+            # 7.7 Inject Visual Product Cards (code-only, instant)
+            print("Starting stage: Inject Product Cards")
+            state["article"]["content"] = content_sanitizer.inject_product_cards(
+                state["article"]["content"],
+                state.get("entities", []),
+                product_images=state.get("product_images", {}),
+            )
+            print("Completed stage: Inject Product Cards")
+
             state["stage"] = "amazon_links_enforced"
             save_state(state)
 
