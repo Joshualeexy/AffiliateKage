@@ -1,11 +1,13 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+require('dotenv').config(); // local overrides if any
 const express = require('express');
 const cors = require('cors');
 const { launchStealthBrowser } = require('./lib/browser');
 
 const app = express();
 const PORT = process.env.SCRAPER_PORT || 4000;
-const AFFILIATE_TAG = process.env.AMAZON_AFFILIATE_TAG || 'ejiroinspire-20';
+const AFFILIATE_TAG = process.env.AMAZON_AFFILIATE_TAG || '';
 
 app.use(cors());
 app.use(express.json());

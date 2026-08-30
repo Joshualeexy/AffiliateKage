@@ -273,7 +273,7 @@ module.exports = { AmazonProductScraper };
 // CLI Demonstration
 if (require.main === module) {
     (async () => {
-        const scraper = new AmazonProductScraper({ affiliateTag: 'ejiroinspire-20' });
+        const scraper = new AmazonProductScraper({ affiliateTag: process.env.AMAZON_AFFILIATE_TAG || '' });
         
         const action = process.argv[2] || 'search';
         const target = process.argv[3] || 'Sony WH-1000XM5';

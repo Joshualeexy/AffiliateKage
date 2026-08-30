@@ -92,7 +92,7 @@ class ContentSanitizer:
     }
 
     def __init__(self, affiliate_tag: str = ""):
-        self.affiliate_tag = affiliate_tag or os.getenv("AMAZON_AFFILIATE_TAG", "ejiroinspire-20") or "ejiroinspire-20"
+        self.affiliate_tag = affiliate_tag or os.getenv("AMAZON_AFFILIATE_TAG", "")
 
     def sanitize_plain_text(self, text: str) -> str:
         """Strip all Markdown bold and italic markers from plain text fields."""
