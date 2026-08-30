@@ -185,24 +185,23 @@ class TopicGenerator:
         return deduped[:8]
 
     def _get_trending_keywords_for_category(self, category: str, product: str) -> List[str]:
-        # 1. Try local trending_keywords.json
-        trending_data = self._load_trending_keywords()
-        # Case-insensitive category match
-        for cat_name, keywords in trending_data.items():
-            if cat_name.lower().strip() == category.lower().strip():
-                if isinstance(keywords, list) and keywords:
-                    return keywords
-
-        # 2. Fallback to Google Autocomplete suggestions
-        print(f"No local trending keywords for category '{category}'. Fetching dynamically from Google Autocomplete...")
+        # 1. Primary: Fetch dynamic, live, trending search queries from Google Autocomplete
         google_suggestions = self._get_google_search_suggestions(product)
         if google_suggestions:
             return google_suggestions
 
-        # 3. Fallback to category search if product search returned nothing
+        # 2. Fallback: Try Google Autocomplete for the broader category
         cat_suggestions = self._get_google_search_suggestions(category)
         if cat_suggestions:
             return cat_suggestions
+
+        # 3. Fallback: Use local curated trending_keywords.json if online search fails
+        print(f"Online autocomplete unavailable for '{category}'. Falling back to local trending_keywords.json...")
+        trending_data = self._load_trending_keywords()
+        for cat_name, keywords in trending_data.items():
+            if cat_name.lower().strip() == category.lower().strip():
+                if isinstance(keywords, list) and keywords:
+                    return keywords
 
         return []
 

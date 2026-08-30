@@ -28,6 +28,10 @@ class AffiliateLinkInjector:
             if any(dom in url_lower for dom in self.PROTECTED_DOMAINS) or url.startswith(("/", "#")):
                 return match.group(0)
 
+            # Protect specific Amazon product and search URLs from being collapsed to generic homepage
+            if "amazon.com" in url_lower and ("/dp/" in url_lower or "/s?k=" in url_lower or "/gp/" in url_lower):
+                return match.group(0)
+
             # Find a matching mapping where pattern is a substring of the URL
             for mapping in mappings:
                 pattern = mapping.get("pattern")
