@@ -19,7 +19,7 @@ An end-to-end autonomous publishing, research, monetization, and content orchest
 - **Smart Entity Classification:** Differentiates physical hardware from digital SaaS, software, and apps. Physical goods receive Amazon monetization; software tools (*Notion, YNAB, Hostinger, Duolingo*) route to official homepages or custom affiliate redirects.
 - **Built-In Stealth Amazon Scraper (PA-API v5 Equivalent):** A dedicated Node.js microservice powered by Playwright Stealth, hardware fingerprint spoofing, CapSolver, and VPN extensions that bypasses Amazon's Akamai Bot Manager. Extracts verified ASINs, high-resolution 1500px CDN images, customer ratings, review counts, and Prime badges without requiring official Amazon API credentials.
 - **Dynamic Product Showcase Cards:** Injects styled, responsive product highlight cards with Editor's Choice badges (*Top Pick, Best Value, Recommended*), official product imagery, and compliant affiliate CTAs.
-- **Automatic VRAM Orchestration:** Unloads Ollama from GPU memory before starting ComfyUI to render high-resolution SDXL featured images, then uploads the asset seamlessly with the article.
+- **Pluggable Hero Image Engine:** Automatically unloads Ollama from GPU memory before starting ComfyUI to render studio SDXL images, or seamlessly renders via cloud APIs (OpenAI DALL-E 3, Stability AI) for zero-GPU environments.
 - **Full SEO & Compliance Hygiene:** Enforces `rel="nofollow sponsored noopener"`, context-aware FTC affiliate disclosures, and clean semantic heading hierarchies.
 - **Unified Global CLI (`ejiroinspire`):** A single command (`ejiroinspire start`) that manages the background stealth scraper microservice and Python pipeline together with graceful `Ctrl+C` termination.
 
@@ -40,7 +40,7 @@ flowchart TD
     H -->|No| J["Curated Software URL Router"]
     I -->|Fetch ASINs, 1500px CDN Images, Ratings| K["Inject Product Showcase Cards"]
     J -->|Attach Official Redirects| K
-    K -->|Generate SDXL Hero Image| L["ComfyUI Generator"]
+    K -->|Render Hero Image| L["Image Generator (ComfyUI / Cloud API)"]
     L -->|Sanitize & Convert to HTML| M["FTC & SEO Compliance Filter"]
     M -->|Push via Admin REST API| N["Headless CMS / Laravel Backend"]
     N -->|Instant Cache Purge| O["Next.js Frontend (ISR)"]
@@ -67,37 +67,50 @@ git clone https://github.com/Joshualeexy/Ejiroinspire-blogpost-automation-workfl
 cd Ejiroinspire-blogpost-automation-workflow
 ```
 
-### 2. Setup Python Virtual Environment
+### 2. Run 1-Click Automated Installer (Recommended)
+We provide an automated setup script that verifies prerequisites, installs Ollama, creates the Python virtual environment, pulls browser binaries, installs scraper dependencies, and configures the global CLI:
+
 ```bash
+chmod +x install.sh
+./install.sh
+```
+
+<details>
+<summary><b>Or follow manual step-by-step setup</b></summary>
+
+```bash
+# Python Environment
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 playwright install chromium
-```
 
-### 3. Setup Custom Amazon Scraper Microservice
-```bash
+# Scraper Microservice
 cd customamazonscraper
 npm install
 cd ..
-```
 
-### 4. Install Global CLI
-Make the global controller executable and link it to your `$PATH`:
-```bash
+# Global CLI
 chmod +x ejiroinspire
 ln -sf $(pwd)/ejiroinspire ~/.local/bin/ejiroinspire
 ```
+</details>
 
 ---
 
 ## ⚙️ Configuration (`.env`)
 
-Create a `.env` file in the root directory:
+Create a `.env` file from the provided template:
+
+```bash
+cp .env.example .env
+```
+
+Key environment variables:
 
 ```env
-# Ollama LLM Configuration
-OLLAMA_MODEL=qwen3:30b
+# Ollama LLM Model (any model: qwen2.5:7b, qwen3-coder:30b, llama3.3:70b)
+OLLAMA_MODEL=qwen3-coder:30b
 
 # Headless CMS / Admin REST API
 API_URL=https://api.yourdomain.com/api/admin
@@ -106,9 +119,21 @@ API_TOKEN=your_bearer_token_here
 # Amazon Associates Tag
 AMAZON_AFFILIATE_TAG=yourtag-20
 
-# ComfyUI Image Generation
+# Image Generation Provider:
+# Options:
+#   comfyui   - Local GPU rendering with ComfyUI SDXL (Default, 100% free)
+#   openai    - Cloud rendering with OpenAI DALL-E 3
+#   stability - Cloud rendering with Stability AI SDXL
+#   fallback  - Zero GPU / Zero API key: pulls high-res editorial photo via DuckDuckGo
+IMAGE_PROVIDER=comfyui
+
+# ComfyUI Settings (Used if IMAGE_PROVIDER=comfyui)
 COMFY_URL=http://127.0.0.1:8188
 COMFY_START_CMD=cd ~/comfyui/ComfyUI && source venv/bin/activate && python main.py
+
+# Optional Cloud API Keys (Used only if IMAGE_PROVIDER is openai or stability)
+# OPENAI_API_KEY=sk-...
+# STABILITY_API_KEY=sk-...
 
 # Custom Stealth Scraper API Microservice
 CUSTOM_SCRAPER_API_URL=http://127.0.0.1:4000
@@ -167,23 +192,24 @@ npm start
 
 ```
 .
-├── main.py                     # Main orchestrator pipeline loop
+├── install.sh                  # 1-Click automated system installer
 ├── ejiroinspire                # Global CLI bash controller
-├── pipeline_state.json         # Resumable stage execution state
-├── generated_topics.json       # Topic history & duplicate prevention
-├── config.py                   # Local overrides and configuration
+├── main.py                     # Main orchestrator pipeline loop
+├── config.py                   # Runtime configuration loader
+├── .env.example                # Template environment variables
 ├── prompts/                    # Editorial persona templates (Reviews, Guides, etc.)
 ├── generators/
-│   ├── topic_generator.py      # Category selection & SEO topic ideation
+│   ├── topic_generator.py      # Live Google trends & SEO topic ideation
 │   ├── outline_generator.py    # Structured JSON outline synthesizer
 │   ├── article_generator.py    # LLM article writer
 │   ├── entity_extractor.py     # Physical vs. digital entity classification
 │   ├── content_sanitizer.py    # Heading repair, link hygiene, product card injection
 │   └── internal_link_injector.py # Semantic internal cross-linking
 ├── services/
-│   ├── image_fetcher.py        # Microservice client with DDGS fallback
+│   ├── image_generator.py      # Pluggable image router (ComfyUI / OpenAI / Stability)
+│   ├── image_fetcher.py        # Microservice scraper client with DDGS fallback
 │   ├── markdown.py             # Markdown-to-HTML converter & disclosure logic
-│   ├── comfy.py                # ComfyUI SDXL image client & VRAM manager
+│   ├── comfy.py                # Local ComfyUI SDXL client & VRAM manager
 │   └── api.py                  # Headless CMS REST API client
 └── customamazonscraper/         # Standalone Node.js Stealth Scraper Microservice
     ├── server.js               # Express API microservice (http://127.0.0.1:4000)
