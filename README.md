@@ -69,8 +69,8 @@ flowchart TD
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/Joshualeexy/Ejiroinspire-blogpost-automation-workflow.git
-cd Ejiroinspire-blogpost-automation-workflow
+git clone https://github.com/Joshualeexy/AffiliateKage.git
+cd AffiliateKage
 ```
 
 ### 2. Run 1-Click Automated Installer (Recommended)
