@@ -251,6 +251,7 @@ class ContentSanitizer:
                 continue
 
             name_lower = entity_name.lower().strip()
+            url = None
 
             # Step 1: Check backend affiliate links first (highest priority)
             if affiliate_links:
