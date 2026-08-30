@@ -1,0 +1,4 @@
+# Tell GitHub Linguist to ignore third-party browser extension assets
+# so they don't skew the repository language stats towards CSS.
+customamazonscraper/extensions/** linguist-vendored
+customamazonscraper/extensions/** -linguist-detectable
