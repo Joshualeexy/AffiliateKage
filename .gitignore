@@ -49,7 +49,14 @@ generated/
 *.tmp
 *.temp
 
-# Virtual environments
-venv/
-env/
-ENV/
+# Node.js
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Scraper Profiles & State
+*profile/
+**/*profile/
+pipeline_state.json

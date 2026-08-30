@@ -116,7 +116,7 @@ def to_html(markdown_text: str, include_disclosure: bool = True) -> str:
     # -- Step 4: Add rel="nofollow sponsored noopener" & target="_blank" to external links ---
     def _modify_link(match: re.Match) -> str:
         attrs = match.group(1)
-        href_match = re.search(r'href=[\"\']([ ^\"\']+)[\"\']', attrs, re.IGNORECASE)
+        href_match = re.search(r'href=[\"\']([^\"\']+)[\"\']', attrs, re.IGNORECASE)
         if not href_match:
             return match.group(0)
         href = href_match.group(1).lower()
@@ -126,8 +126,10 @@ def to_html(markdown_text: str, include_disclosure: bool = True) -> str:
             return match.group(0)
 
         # External / Affiliate link: apply nofollow sponsored and target="_blank"
-        attrs_clean = re.sub(r'\s*(rel|target)=[\"\']([ ^\"\']*)[\"\']\s*', '', attrs, flags=re.IGNORECASE)
-        return f'<a{attrs_clean} target="_blank" rel="nofollow sponsored noopener">'
+        attrs_clean = re.sub(r'\s*(rel|target)=[\"\'][^\"\']*[\"\']\s*', ' ', attrs, flags=re.IGNORECASE).strip()
+        if attrs_clean:
+            return f'<a {attrs_clean} target="_blank" rel="nofollow sponsored noopener">'
+        return '<a target="_blank" rel="nofollow sponsored noopener">'
 
     html = re.sub(r'<a\b([^>]*)>', _modify_link, html, flags=re.IGNORECASE)
 
@@ -152,18 +154,20 @@ def to_html(markdown_text: str, include_disclosure: bool = True) -> str:
     )
 
     # -- Step 6: Style YouTube embeds for responsive display ---------------
+    def _wrap_youtube_iframe(m: re.Match) -> str:
+        attrs = m.group(1)
+        content = m.group(2)
+        return (
+            f'<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; margin: 24px 0; border-radius: 12px;">'
+            f'<iframe{attrs} style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; border-radius: 12px;" allowfullscreen>{content}</iframe>'
+            f'</div>'
+        )
+
     html = re.sub(
-        r'<iframe([^>]*(?:youtube|youtube-nocookie)[^>]*)>',
-        lambda m: f'<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; margin: 24px 0; border-radius: 12px;"><iframe{m.group(1)} style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; border-radius: 12px;" allowfullscreen>',
+        r'<iframe([^>]*(?:youtube|youtube-nocookie)[^>]*)>(.*?)</iframe>',
+        _wrap_youtube_iframe,
         html,
-        flags=re.IGNORECASE,
-    )
-    # Close the responsive wrapper div after the iframe closing tag
-    html = re.sub(
-        r'(</iframe>)(\s*</div>)?',
-        lambda m: m.group(0) if m.group(2) else f'{m.group(1)}</div>',
-        html,
-        flags=re.IGNORECASE,
+        flags=re.IGNORECASE | re.DOTALL,
     )
 
     return html

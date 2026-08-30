@@ -308,6 +308,8 @@ class InternalLinkInjector:
                 between = before[last_open_bracket:]
                 if '](' not in between and ')' not in between:
                     continue
+                if '](' in between and ')' not in between:
+                    continue
 
             # Replace this single line
             lines[i] = line[:idx] + link_md + line[end_idx:]

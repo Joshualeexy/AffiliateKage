@@ -1,0 +1,150 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# ejiroinspire - Unified Pipeline & Scraper CLI Controller
+# ==============================================================================
+
+set -e
+
+PROJECT_DIR="/home/kodar/project/Ejiroinspire"
+SCRAPER_DIR="${PROJECT_DIR}/customamazonscraper"
+VENV_PYTHON="${PROJECT_DIR}/venv/bin/python"
+PORT=4000
+SCRAPER_PID=""
+PIPELINE_PID=""
+
+# Colors
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+# ── Cleanup Handler on Exit / Ctrl+C ─────────────────────────────────────────
+cleanup() {
+    echo -e "\n${YELLOW}[ejiroinspire] Shutting down services...${NC}"
+    
+    # Terminate Python pipeline
+    if [ -n "$PIPELINE_PID" ] && kill -0 "$PIPELINE_PID" 2>/dev/null; then
+        echo -e "${YELLOW}[ejiroinspire] Stopping Python pipeline (PID: $PIPELINE_PID)...${NC}"
+        kill -TERM "$PIPELINE_PID" 2>/dev/null || true
+        wait "$PIPELINE_PID" 2>/dev/null || true
+    fi
+
+    # Terminate Node Scraper Service
+    if [ -n "$SCRAPER_PID" ] && kill -0 "$SCRAPER_PID" 2>/dev/null; then
+        echo -e "${YELLOW}[ejiroinspire] Stopping Node.js Scraper API (PID: $SCRAPER_PID)...${NC}"
+        kill -TERM "$SCRAPER_PID" 2>/dev/null || true
+    fi
+
+    # Also kill any orphan server.js on port 4000 if we started it
+    fuser -k -n tcp "$PORT" 2>/dev/null || true
+
+    echo -e "${GREEN}[ejiroinspire] All services stopped cleanly. Goodbye!${NC}"
+    exit 0
+}
+
+trap cleanup INT TERM
+
+# ── Start Command ─────────────────────────────────────────────────────────────
+start_pipeline() {
+    echo -e "${BLUE}======================================================${NC}"
+    echo -e "${BLUE}       🚀 Starting Ejiro Inspire Automation Stack      ${NC}"
+    echo -e "${BLUE}======================================================${NC}"
+
+    cd "$PROJECT_DIR"
+
+    # Step 1: Ensure Scraper Microservice is running
+    if curl -s -m 2 "http://127.0.0.1:${PORT}/health" >/dev/null 2>&1; then
+        echo -e "${GREEN}[Scraper API] Microservice is already running on http://127.0.0.1:${PORT}${NC}"
+    else
+        echo -e "${BLUE}[Scraper API] Starting Node.js stealth scraper microservice...${NC}"
+        cd "$SCRAPER_DIR"
+        node server.js >/tmp/ejiro_scraper.log 2>&1 &
+        SCRAPER_PID=$!
+        cd "$PROJECT_DIR"
+
+        # Wait for scraper to warm up
+        echo -n "[Scraper API] Waiting for stealth browser pool to initialize..."
+        WAITED=0
+        READY=false
+        while [ $WAITED -lt 25 ]; do
+            if curl -s "http://127.0.0.1:${PORT}/health" 2>/dev/null | grep -q '"browserReady":true'; then
+                READY=true
+                break
+            fi
+            echo -n "."
+            sleep 1
+            WAITED=$((WAITED + 1))
+        done
+
+        if [ "$READY" = true ]; then
+            echo -e " ${GREEN}READY!${NC}"
+        else
+            echo -e " ${YELLOW}Service started (warming in background).${NC}"
+        fi
+    fi
+
+    # Step 2: Start Python pipeline
+    echo -e "${GREEN}[Pipeline] Starting Python automation pipeline...${NC}"
+    echo -e "${YELLOW}[Pipeline] Press Ctrl+C at any time to stop both pipeline and scraper.${NC}"
+    echo -e "${BLUE}------------------------------------------------------${NC}"
+
+    # Forward any arguments (like --clear-state) to main.py
+    "$VENV_PYTHON" main.py "$@" &
+    PIPELINE_PID=$!
+
+    # Wait for pipeline process
+    wait "$PIPELINE_PID" || true
+    PIPELINE_PID=""
+    cleanup
+}
+
+# ── Stop Command ──────────────────────────────────────────────────────────────
+stop_services() {
+    echo -e "${YELLOW}[ejiroinspire] Stopping all Ejiro Inspire processes...${NC}"
+    pkill -f "node.*server\.js" 2>/dev/null && echo -e "${GREEN}✓ Node scraper stopped.${NC}" || true
+    pkill -f "python.*main\.py" 2>/dev/null && echo -e "${GREEN}✓ Python pipeline stopped.${NC}" || true
+    fuser -k -n tcp "$PORT" 2>/dev/null || true
+    echo -e "${GREEN}[ejiroinspire] All services stopped.${NC}"
+}
+
+# ── Status Command ────────────────────────────────────────────────────────────
+status_services() {
+    echo -e "${BLUE}--- Ejiro Inspire Status ---${NC}"
+    if curl -s -m 2 "http://127.0.0.1:${PORT}/health" 2>/dev/null; then
+        echo -e "\n${GREEN}✓ Scraper API: ACTIVE on port ${PORT}${NC}"
+    else
+        echo -e "\n${RED}✗ Scraper API: OFFLINE${NC}"
+    fi
+
+    if pgrep -f "python.*main\.py" >/dev/null; then
+        echo -e "${GREEN}✓ Python Pipeline: RUNNING${NC}"
+    else
+        echo -e "${YELLOW}✗ Python Pipeline: IDLE${NC}"
+    fi
+}
+
+# ── CLI Entrypoint ────────────────────────────────────────────────────────────
+CMD="${1:-start}"
+
+case "$CMD" in
+    start)
+        shift || true
+        start_pipeline "$@"
+        ;;
+    stop)
+        stop_services
+        ;;
+    status)
+        status_services
+        ;;
+    restart)
+        stop_services
+        sleep 1
+        start_pipeline
+        ;;
+    *)
+        # If user passed arguments like --clear-state directly
+        start_pipeline "$@"
+        ;;
+esac

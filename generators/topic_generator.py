@@ -240,7 +240,9 @@ class TopicGenerator:
         return False
 
     DISALLOWED_CURRENCY_PATTERNS = [
-        re.compile(r'\b(naira|rupees?|rs\.?\s*\d+|in\s+india|in\s+nigeria)\b', re.IGNORECASE),
+        re.compile(r'[₹₦£€]'),
+        re.compile(r'\b(?:naira|rupees?|inr|ngn|gbp|eur|lakh|crore|in\s+india|in\s+nigeria)\b', re.IGNORECASE),
+        re.compile(r'\b(?:rs|inr|ngn)\.?\s*\d+', re.IGNORECASE),
     ]
 
     def _currency_violation(self, title: str) -> bool:

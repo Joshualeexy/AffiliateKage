@@ -1,309 +1,224 @@
-# Ejiro Inspire Automation
+# 🚀 Ejiro Inspire: Autonomous Content & Affiliate Publishing Engine
 
-Automated content pipeline for Ejiro Inspire. It generates affiliate-focused article topics, researches the web, creates an outline and long-form article with Ollama, validates the result, extracts entities, generates a featured image through ComfyUI, and publishes the final HTML article to the backend API.
+[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![Node Version](https://img.shields.io/badge/node-18%2B-green.svg)](https://nodejs.org/)
+[![Engine](https://img.shields.io/badge/LLM-Ollama-purple.svg)](https://ollama.ai/)
+[![Image Generation](https://img.shields.io/badge/Image-ComfyUI%20SDXL-orange.svg)](https://github.com/comfyanonymous/ComfyUI)
+[![Scraper](https://img.shields.io/badge/Scraper-Playwright%20Stealth-red.svg)](https://github.com/berstend/puppeteer-extra)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-The project is designed to run locally with GPU-backed services. It keeps resumable state in `pipeline_state.json`, so interrupted runs can continue from the last completed stage.
+An end-to-end autonomous publishing, research, monetization, and content orchestration engine. It continuously discovers high-intent buyer topics, performs grounded web research, generates publication-ready long-form articles, classifies physical vs. digital entities, extracts verified Amazon product data without official PA-API requirements, renders AI hero images, and publishes directly to a headless CMS.
 
-## What It Does
+---
 
-- Generates diverse affiliate article topics from curated product and lifestyle categories.
-- Avoids recently used categories and exact duplicate titles through `generated_topics.json`.
-- Rejects stale year patterns in titles, especially `2024` style SEO leftovers.
-- Maps topic formats such as `Review`, `Buying Guide`, `Alternatives`, and `Is It Worth It` to the closest article template.
-- Uses DuckDuckGo plus Crawl4AI to fetch live research context.
-- Builds a structured outline before article generation.
-- Generates long-form Markdown articles using strict prompt templates in `prompts/`.
-- Validates minimum content quality before continuing.
-- Converts Markdown to HTML before publishing.
-- Extracts entities for products, brands, software, and companies.
-- Generates an SDXL-style featured image prompt, unloads Ollama, starts ComfyUI, renders the image, and uploads it with the article.
+## 🌟 Key Features
 
-## Requirements
+- **Autonomous Topic Ideation & Trend Discovery:** Generates high-converting affiliate topics across 30+ product categories, rotating formats (*Reviews, Buying Guides, Comparisons, Alternatives, Tutorials*) while eliminating duplicate and stale year titles.
+- **Grounded Web Research:** Leverages `Crawl4AI` and DuckDuckGo to extract live, real-world context, specifications, and competitor data before generating outlines.
+- **Structured Long-Form Content (Ollama):** Strict prompt templates enforce 2,000+ word deep-dive reviews, comparison matrices, evaluation criteria, pros/cons, and FAQs.
+- **Smart Entity Classification:** Differentiates physical hardware from digital SaaS, software, and apps. Physical goods receive Amazon monetization; software tools (*Notion, YNAB, Hostinger, Duolingo*) route to official homepages or custom affiliate redirects.
+- **Built-In Stealth Amazon Scraper (PA-API v5 Equivalent):** A dedicated Node.js microservice powered by Playwright Stealth, hardware fingerprint spoofing, CapSolver, and VPN extensions that bypasses Amazon's Akamai Bot Manager. Extracts verified ASINs, high-resolution 1500px CDN images, customer ratings, review counts, and Prime badges without requiring official Amazon API credentials.
+- **Dynamic Product Showcase Cards:** Injects styled, responsive product highlight cards with Editor's Choice badges (*Top Pick, Best Value, Recommended*), official product imagery, and compliant affiliate CTAs.
+- **Automatic VRAM Orchestration:** Unloads Ollama from GPU memory before starting ComfyUI to render high-resolution SDXL featured images, then uploads the asset seamlessly with the article.
+- **Full SEO & Compliance Hygiene:** Enforces `rel="nofollow sponsored noopener"`, context-aware FTC affiliate disclosures, and clean semantic heading hierarchies.
+- **Unified Global CLI (`ejiroinspire`):** A single command (`ejiroinspire start`) that manages the background stealth scraper microservice and Python pipeline together with graceful `Ctrl+C` termination.
+- **Batch Remediation Engine:** Includes a standalone migration script (`remediate_posts.py`) that audits and repairs published database archives in-place with automatic revision snapshots.
 
-- Python 3.10 or newer.
-- Ollama installed and running.
-- A local Ollama model suitable for JSON and long-form content generation.
-- Playwright browser dependencies for Crawl4AI.
-- ComfyUI available locally.
-- Backend API credentials for topic checking and publishing.
+---
 
-Install Python packages:
+## 📐 Architecture & Pipeline Flow
 
+```mermaid
+flowchart TD
+    A[Topic Generator] -->|Select Category & Format| B[Duplicate & Trend Check]
+    B -->|Query DDG + Crawl4AI| C[Grounded Web Research]
+    C -->|Synthesize Insights| D[Structured Outline Generator]
+    D -->|Ollama LLM| E[Long-Form Article Generation]
+    E -->|Structural Validation| F[Article Validator]
+    F -->|Extract Products & Software| G[Entity Extractor]
+    G --> H{Is Physical Product?}
+    H -->|Yes| I[Stealth Amazon Scraper API]
+    H -->|No| J[Curated Software URL Router]
+    I -->|Fetch ASINs, 1500px CDN Images, Ratings| K[Inject Product Showcase Cards]
+    J -->|Attach Official Redirects| K
+    K -->|Generate SDXL Hero Image| L[ComfyUI Generator]
+    L -->|Sanitize & Convert to HTML| M[FTC & SEO Compliance Filter]
+    M -->|Push via Admin REST API| N[Headless CMS / Laravel Backend]
+    N -->|Instant Cache Purge| O[Next.js Frontend (ISR)]
+```
+
+---
+
+## 📦 System Requirements
+
+- **Operating System:** Linux (Arch, Ubuntu/Debian recommended) or macOS.
+- **Python:** 3.10 or newer.
+- **Node.js:** 18.0 or newer.
+- **Ollama:** Installed and running locally (e.g. `qwen3:30b`, `llama3.3`).
+- **ComfyUI:** Installed locally for SDXL featured image generation.
+- **Chromium:** Installed on system (`/usr/bin/chromium`).
+
+---
+
+## 🚀 Quickstart
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/Joshualeexy/Ejiroinspire-blogpost-automation-workflow.git
+cd Ejiroinspire-blogpost-automation-workflow
+```
+
+### 2. Setup Python Virtual Environment
 ```bash
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-playwright install
+playwright install chromium
 ```
 
-Make sure Ollama is running and the configured model exists:
+### 3. Setup Custom Amazon Scraper Microservice
+```bash
+cd customamazonscraper
+npm install
+cd ..
+```
+
+### 4. Install Global CLI
+Make the global controller executable and link it to your `$PATH`:
+```bash
+chmod +x ejiroinspire
+ln -sf $(pwd)/ejiroinspire ~/.local/bin/ejiroinspire
+```
+
+---
+
+## ⚙️ Configuration (`.env`)
+
+Create a `.env` file in the root directory:
+
+```env
+# Ollama LLM Configuration
+OLLAMA_MODEL=qwen3:30b
+
+# Headless CMS / Admin REST API
+API_URL=https://api.yourdomain.com/api/admin
+API_TOKEN=your_bearer_token_here
+
+# Amazon Associates Tag
+AMAZON_AFFILIATE_TAG=yourtag-20
+
+# ComfyUI Image Generation
+COMFY_URL=http://127.0.0.1:8188
+COMFY_START_CMD=cd ~/comfyui/ComfyUI && source venv/bin/activate && python main.py
+
+# Custom Stealth Scraper API Microservice
+CUSTOM_SCRAPER_API_URL=http://127.0.0.1:4000
+```
+
+Inside `customamazonscraper/.env` (optional, for anti-captcha/VPN integration):
+```env
+CAPSOLVER_API_KEY=your_capsolver_key_here
+SCRAPER_PORT=4000
+AMAZON_AFFILIATE_TAG=yourtag-20
+```
+
+---
+
+## 💻 Usage
+
+### Running the Entire Engine (One Command)
+You can start the full stack from **any terminal, anywhere on your system**:
 
 ```bash
-ollama list
+# Starts Node.js Scraper API + Python Pipeline
+ejiroinspire start
+
+# Start fresh and clear saved pipeline state:
+ejiroinspire start --clear-state
 ```
 
-## Configuration
+- When running, pressing **`Ctrl+C`** will gracefully shut down both the Python pipeline and the background Node.js scraper microservice.
 
-Runtime configuration is loaded from the local `config.py`, which is intentionally ignored by git because it can contain sensitive values. Keep that file local.
+### Monitoring & Status
+```bash
+# View active service statuses
+ejiroinspire status
 
-Expected values:
-
-```python
-OLLAMA_MODEL = "qwen3:30b"
-API_URL = "https://your-api.example.com/api/admin"
-API_TOKEN = "your_api_token"
-COMFY_URL = "http://127.0.0.1:8188"
-COMFY_START_CMD = "cd ~/comfyui/ComfyUI && source venv/bin/activate && python main.py"
+# Stop all background services
+ejiroinspire stop
 ```
 
-Notes:
+### Running the Scraper Standalone
+```bash
+cd customamazonscraper
 
-- `API_URL` is used for `/automation/check-topic` and `/automation/publish`.
-- `API_TOKEN` is sent as a bearer token.
-- `COMFY_START_CMD` is executed when image generation begins.
-- The current Comfy client posts to `http://127.0.0.1:8188`, so run ComfyUI on that address unless you update `services/comfy.py`.
-- `OLLAMA_MODEL` is used by default across topic, outline, article, entity, and image prompt generation. Some generators define fallback model names if the environment value is missing.
+# Search products (PA-API SearchItems style)
+node scraper.js search "Sony WH-1000XM5"
 
-## Running The Pipeline
+# Fetch deep item metadata (PA-API GetItems style)
+node scraper.js get "B0B11LJ69K"
 
-Start or resume automation:
+# Run HTTP API microservice
+npm start
+```
+
+### Batch Archive Remediation
+If you have an existing blog database that needs structural heading fixes, orphaned paragraph wrapping, or Amazon compliance enforcement:
 
 ```bash
-python main.py
+# Preview changes without modifying database
+./venv/bin/python remediate_posts.py --dry-run
+
+# Run live remediation across entire database
+./venv/bin/python remediate_posts.py --yes
 ```
 
-Start fresh and discard saved pipeline state:
+---
 
-```bash
-python main.py --clear-state
+## 📁 Repository Structure
+
+```
+.
+├── main.py                     # Main orchestrator pipeline loop
+├── ejiroinspire                # Global CLI bash controller
+├── remediate_posts.py          # Batch database audit & repair engine
+├── pipeline_state.json         # Resumable stage execution state
+├── generated_topics.json       # Topic history & duplicate prevention
+├── config.py                   # Local overrides and configuration
+├── prompts/                    # Editorial persona templates (Reviews, Guides, etc.)
+├── generators/
+│   ├── topic_generator.py      # Category selection & SEO topic ideation
+│   ├── outline_generator.py    # Structured JSON outline synthesizer
+│   ├── article_generator.py    # LLM article writer
+│   ├── entity_extractor.py     # Physical vs. digital entity classification
+│   ├── content_sanitizer.py    # Heading repair, link hygiene, product card injection
+│   └── internal_link_injector.py # Semantic internal cross-linking
+├── services/
+│   ├── image_fetcher.py        # Microservice client with DDGS fallback
+│   ├── markdown.py             # Markdown-to-HTML converter & disclosure logic
+│   ├── comfy.py                # ComfyUI SDXL image client & VRAM manager
+│   └── api.py                  # Headless CMS REST API client
+└── customamazonscraper/         # Standalone Node.js Stealth Scraper Microservice
+    ├── server.js               # Express API microservice (http://127.0.0.1:4000)
+    ├── scraper.js              # PA-API equivalent SearchItems & GetItems
+    ├── lib/browser.js          # Playwright Stealth + Fingerprint spoofing launcher
+    ├── extensions/             # CapSolver & VPN extension packages
+    └── package.json            # Node.js dependencies
 ```
 
-The script runs continuously. After one article publishes successfully, it clears `pipeline_state.json`, waits 10 seconds, and starts the next article.
+---
 
-## Pipeline Stages
+## 🤝 Open Source Contributing
 
-`main.py` runs these stages in order:
+Contributions, issues, and feature requests are welcome!
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-1. `topic_generated`: `TopicGenerator` picks a category, product family, and article format, then asks Ollama for a short SEO topic.
-2. `topic_checked`: `ApiClient.topic_exists()` checks whether the backend already has the topic.
-3. `topic_classified`: the generated topic format is mapped to an `ArticleType`; the classifier is only used as a fallback.
-4. `research_completed`: `Crawl4AiProvider` searches DuckDuckGo and crawls up to 3 pages.
-5. `outline_generated`: `OutlineGenerator` creates a JSON outline from the topic and research context.
-6. `article_generated`: `ArticleGenerator` uses the matching prompt in `prompts/article_*.txt` and requires valid JSON article output.
-7. `article_validated`: `ArticleValidator` checks content presence, minimum words, and Markdown heading structure.
-8. `entities_extracted`: `EntityExtractor` adds product, brand, software, and company entities.
-9. `markdown_converted`: Markdown article content is converted to HTML.
-10. `image_prompt_generated`: `ImagePromptGenerator` creates a featured-image prompt.
-11. `image_generated`: Ollama is unloaded to free VRAM, then ComfyUI generates the image.
-12. `publish_ready`: `ApiClient.publish()` uploads article fields plus the generated image.
+---
 
-## State And Recovery
+## 📄 License
 
-`pipeline_state.json` stores the latest successful stage and data needed to resume. If the process stops after a partial run, start it again with:
-
-```bash
-python main.py
-```
-
-Use `--clear-state` when you want to abandon the saved run:
-
-```bash
-python main.py --clear-state
-```
-
-Important behavior:
-
-- Topic generation failures before a topic exists do not preserve state because there is nothing useful to resume.
-- Article validation failures reset the stage to `outline_generated` and retry article generation automatically.
-- After 3 validation failures, state is saved for inspection instead of looping forever.
-- Publish or image generation failures save state so the same article can resume after the dependency is fixed.
-
-## Topic Generation
-
-Topic generation is controlled by `generators/topic_generator.py`.
-
-It uses curated categories and product families, then asks Ollama for JSON shaped like:
-
-```json
-{
-  "type": "Review",
-  "title": "WD Red NAS Drives Review",
-  "category": "NAS",
-  "primary_keyword": "WD Red NAS drives",
-  "secondary_keywords": ["NAS hard drives", "WD Red review", "home NAS storage"]
-}
-```
-
-Safeguards:
-
-- Exact duplicate titles are rejected against `generated_topics.json`.
-- Recent categories are avoided to reduce repetitive article runs.
-- Titles are capped by prompt rules at short, punchy SEO titles.
-- Stale or disallowed year patterns are rejected or stripped.
-- Each retry chooses a fresh category, product family, and format.
-
-## Article Prompts
-
-Article prompts live in:
-
-- `prompts/article_review.txt`
-- `prompts/article_buying_guide.txt`
-- `prompts/article_comparison.txt`
-- `prompts/article_listicle.txt`
-- `prompts/article_tutorial.txt`
-- `prompts/article_informational.txt`
-
-Each prompt requires:
-
-- JSON-only response.
-- Required fields: `title`, `excerpt`, `seo_title`, `meta_description`, `content`.
-- Complete Markdown article in `content`.
-- 1800 to 3000 words.
-- H2 and H3 structure.
-- FAQ section.
-- No article-body images or placeholders.
-- No banned AI filler phrases.
-
-The code also rejects article outputs under 500 words or without `##` headings before saving them.
-
-## Research
-
-Research is handled by `research/crawl4ai_provider.py`.
-
-The provider:
-
-- Uses DuckDuckGo via `ddgs`.
-- Uses the `lite` backend for better reliability in automated environments.
-- Crawls up to 3 results with `AsyncWebCrawler`.
-- Saves URL, title, snippet, and Markdown content into pipeline state.
-- Falls back from `primary_keyword + title` to `title`, then to `primary_keyword` if no results are found.
-
-Crawl4AI is pointed at the project directory with `CRAWL4_AI_BASE_DIRECTORY` to avoid write issues in locked-down home directories.
-
-## Image Generation
-
-Image generation has two phases:
-
-1. `ImagePromptGenerator` asks Ollama for a photorealistic SDXL-style featured image prompt.
-2. `ComfyClient` starts ComfyUI, submits `services/workflow.json`, waits for the image, downloads it into `generated/`, then stops the ComfyUI process it started.
-
-Default Comfy parameters:
-
-- Server: `http://127.0.0.1:8188`
-- Workflow: `services/workflow.json`
-- Output directory: `generated/`
-- Checkpoint: `juggernautXL_ragnarok.safetensors`
-- Size: `1344x768`
-- Steps: `50`
-- Sampler: `euler`
-
-Before ComfyUI starts, the pipeline calls `OllamaClient.unload()` to free VRAM. It first tries `keep_alive=0`, then falls back to `ollama stop <model>`.
-
-## Backend API Contract
-
-`services/api.py` expects these endpoints under `API_URL`:
-
-### Check Topic
-
-```text
-POST /automation/check-topic
-```
-
-Request body:
-
-```json
-{
-  "title": "Article title"
-}
-```
-
-Expected response:
-
-```json
-{
-  "exists": false
-}
-```
-
-### Publish
-
-```text
-POST /automation/publish
-```
-
-Multipart fields:
-
-- `title`
-- `slug`
-- `excerpt`
-- `content`
-- `category_id`, if present
-- `featured_image`
-
-The client retries failed publish attempts up to 3 times and prints the response body when available.
-
-## Generated And Local Files
-
-- `pipeline_state.json`: resumable run state. Safe to delete when abandoning a run.
-- `generated_topics.json`: local title/category history for deduplication.
-- `generated/`: downloaded ComfyUI images.
-- `.crawl4ai/`: Crawl4AI runtime data.
-- `config.py`: local sensitive configuration, ignored by git.
-- `.env`: optional local environment file, ignored by git.
-
-## Troubleshooting
-
-### The script says saved state exists and exits
-
-Open `pipeline_state.json` and check `stage` and `status`.
-
-- If the dependency is fixed and the state is resumable, run `python main.py`.
-- If you want a fresh article, run `python main.py --clear-state`.
-
-### Topic generation keeps failing
-
-Common causes:
-
-- The model keeps returning duplicate titles already in `generated_topics.json`.
-- The model keeps adding stale years.
-- The selected model is too small or not following JSON instructions reliably.
-
-The generator retries with fresh topic inputs. If failures persist, inspect `generated_topics.json` and consider using a stronger Ollama model.
-
-### Articles are too short
-
-The article prompts require long-form output, and `ArticleGenerator` rejects short outputs under 500 words. If this still happens repeatedly:
-
-- Use a stronger model for `OLLAMA_MODEL`.
-- Check that the correct prompt file exists for the article type.
-- Inspect `pipeline_state.json` for the selected `article_type`.
-- Check Ollama context limits for the configured model.
-
-### ComfyUI starts but image generation fails
-
-Check:
-
-- ComfyUI is available at `127.0.0.1:8188`.
-- `COMFY_START_CMD` points to the correct ComfyUI environment.
-- `services/workflow.json` matches your installed ComfyUI nodes.
-- The checkpoint name exists in your ComfyUI models directory.
-- Ollama was unloaded successfully before image generation.
-
-### Publish fails
-
-Check:
-
-- `API_URL` is correct.
-- `API_TOKEN` is valid.
-- The backend accepts the expected multipart fields.
-- The generated image path in `pipeline_state.json` exists.
-
-## Development Notes
-
-Run a syntax check after code edits:
-
-```bash
-python -m py_compile main.py generators/*.py services/*.py research/*.py validation/*.py
-```
-
-The project currently has no automated test suite. The safest manual test is a full run with a real Ollama model, Crawl4AI browser install, ComfyUI setup, and backend API credentials.
+Distributed under the **MIT License**. See `LICENSE` for more information.

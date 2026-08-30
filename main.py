@@ -227,7 +227,7 @@ def run_pipeline(
                 category = topic.get("category", "") if topic else ""
                 product_images = ImageFetcher.fetch_product_images(
                     state.get("entities", []),
-                    max_items=3
+                    max_items=10
                 )
                 state["product_images"] = product_images
                 print(f"Completed stage: Fetch Product Images — Found {len(product_images)} images")
@@ -246,12 +246,27 @@ def run_pipeline(
             )
             print("Completed stage: Enforce Smart Entity Links")
 
+            # 7.6b Enforce Software/Digital Entity Links (code-only, instant)
+            print("Starting stage: Enforce Software Entity Links")
+            try:
+                affiliate_links = api.get_affiliate_links() or []
+            except Exception:
+                affiliate_links = []
+            state["article"]["content"] = content_sanitizer.enforce_software_links(
+                state["article"]["content"],
+                state.get("entities", []),
+                category=category,
+                affiliate_links=affiliate_links,
+            )
+            print("Completed stage: Enforce Software Entity Links")
+
             # 7.7 Inject Visual Product Cards (code-only, instant)
             print("Starting stage: Inject Product Cards")
             state["article"]["content"] = content_sanitizer.inject_product_cards(
                 state["article"]["content"],
                 state.get("entities", []),
                 product_images=state.get("product_images", {}),
+                category=category,
             )
             print("Completed stage: Inject Product Cards")
 

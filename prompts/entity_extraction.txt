@@ -1,17 +1,20 @@
 Extract key entities from the following article content.
 
-Look for specific named entities in these categories:
-- "product": specific hardware, software, or service names (e.g. "iPhone 15 Pro", "Sony WH-1000XM5")
-- "brand": company or manufacturer names (e.g. "Apple", "Sony", "Samsung")
-- "software": named software applications, operating systems, or platforms
-- "company": companies mentioned in a corporate context
+For each entity, carefully determine whether it is a tangible physical hardware item, a software application / digital service, a brand, or a company:
+
+Classification types:
+- "physical_product": Tangible physical hardware, consumer electronics, home gear, or physical goods (e.g. "Sony WH-1000XM5", "Dell XPS 13", "Kasa Smart Plug", "Logitech MX Master 3S", "Bellroy Packing Cubes")
+- "software_app": Digital applications, software tools, SaaS platforms, web services, mobile apps, domain registrars, online tools, or websites (e.g. "Monarch Money", "YNAB", "Copilot", "Namecheap", "GoDaddy", "Resume Builder.com", "Notion", "Eat This Much")
+- "brand": Manufacturer or hardware brand (e.g. "Apple", "Sony", "Logitech", "Anker")
+- "company": Corporate entity, digital provider, or software publisher (e.g. "OpenAI", "Google", "Microsoft")
 
 Return ONLY valid JSON in this exact format:
 {
     "entities": [
         {
             "name": "Entity Name",
-            "type": "brand|product|software|company",
+            "type": "physical_product|software_app|brand|company",
+            "is_physical": true,
             "context": "A brief 5-10 word snippet showing how it was used in the text"
         }
     ]

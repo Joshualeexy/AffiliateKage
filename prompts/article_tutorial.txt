@@ -22,7 +22,7 @@ NON-NEGOTIABLE OUTPUT RULES:
 - Include at least 3 H3 subsections using "###".
 - Include a FAQ section with at least 5 practical questions and direct answers.
 - Do not include images, image placeholders, or HTML in the article body. You MAY include relevant reference links, citations, and source links using standard Markdown link syntax where appropriate.
-- For EVERY specific product you recommend or review, you MUST wrap the product name itself in an Amazon search link, formatted EXACTLY like this: [Product Name](https://www.amazon.com/s?k=product+name) (with spaces replaced by '+'). Do NOT use generic text like "Check Price on Amazon" or similar.
+- Do NOT add raw affiliate or Amazon links. Mention products, software, and services naturally by their proper names; the publishing pipeline will automatically inject verified links and product cards.
 - Format Markdown correctly: ALWAYS leave a blank empty line before and after all headings (H2, H3, etc).
 - NEVER use bold text (e.g. **Heading**) for section titles. ALWAYS use proper Markdown heading syntax (## or ###) for all sections, including "Quick Picks", "At A Glance", and "Why You Should Trust Us".
 
