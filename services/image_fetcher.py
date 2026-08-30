@@ -28,21 +28,16 @@ class ImageFetcher:
     ]
 
     @classmethod
-    def fetch_product_images(cls, entities: List[Dict[str, Any]], max_items: int = 10) -> Dict[str, str]:
-        """Fetch clean, unique product photo URLs for physical product entities.
-
-        Args:
-            entities: List of entity dicts from the entity extractor.
-            max_items: Maximum number of products to fetch images for (default 10).
+    def fetch_product_data(cls, entities: List[Dict[str, Any]], max_items: int = 10) -> Dict[str, Dict[str, str]]:
+        """Fetch clean product photo URLs and direct Amazon detail URLs for physical product entities.
 
         Returns:
-            Dict mapping product_name -> image_url
+            Dict mapping product_name -> {"image": image_url, "url": detail_page_url}
         """
-        product_images: Dict[str, str] = {}
+        product_data: Dict[str, Dict[str, str]] = {}
         if not entities:
-            return product_images
+            return product_data
 
-        # Filter for genuine physical product entities only
         product_entities = [
             e for e in entities
             if isinstance(e, dict)
@@ -52,7 +47,7 @@ class ImageFetcher:
         ]
 
         if not product_entities:
-            return product_images
+            return product_data
 
         target_entities = product_entities[:max_items]
         used_urls: set[str] = set()
@@ -60,6 +55,7 @@ class ImageFetcher:
         for entity in target_entities:
             name = entity["name"].strip()
             img_url = None
+            direct_url = None
 
             # Strategy 1: Call Local Stealth Amazon Scraper API
             try:
@@ -70,15 +66,19 @@ class ImageFetcher:
                 if api_resp.status_code == 200:
                     data = api_resp.json()
                     products = data.get("data", [])
-                    if products and products[0].get("primaryImage"):
-                        candidate = products[0]["primaryImage"]
-                        if cls._is_valid_image_url(candidate, used_urls):
+                    if products:
+                        item = products[0]
+                        candidate = item.get("primaryImage")
+                        if candidate and cls._is_valid_image_url(candidate, used_urls):
                             img_url = candidate
                             print(f"Image Fetcher [Custom Scraper API]: Found Amazon CDN image for '{name}' -> {img_url[:70]}...")
+                        if item.get("detailPageUrl"):
+                            direct_url = item["detailPageUrl"]
+                            print(f"Image Fetcher [Custom Scraper API]: Found direct product URL for '{name}' -> {direct_url}")
             except Exception as e:
                 logger.debug("Local custom scraper API unavailable for '%s': %s", name, e)
 
-            # Strategy 2: Fallback to DDGS
+            # Strategy 2: Fallback to DDGS for image if API returned no image
             if not img_url:
                 try:
                     try:
@@ -86,26 +86,41 @@ class ImageFetcher:
                     except ImportError:
                         from duckduckgo_search import DDGS
 
+                    search_query = f"{name} product photo"
                     with DDGS() as ddgs:
-                        query = f"{name} product photo white background"
-                        results = list(ddgs.images(query, max_results=3))
-                        for item in results:
-                            candidate = item.get("image") or item.get("thumbnail")
-                            if candidate and cls._is_valid_image_url(candidate, used_urls):
-                                img_url = candidate
-                                print(f"Image Fetcher [DDGS Fallback]: Found photo for '{name}' -> {img_url[:70]}...")
-                                break
+                        results = list(ddgs.images(
+                            search_query,
+                            max_results=5,
+                            type_image="photo",
+                        ))
+                    for item in results:
+                        candidate = item.get("image")
+                        if candidate and cls._is_valid_image_url(candidate, used_urls):
+                            img_url = candidate
+                            print(f"Image Fetcher [DDGS Fallback]: Found image for '{name}' -> {img_url[:70]}...")
+                            break
                 except Exception as e:
-                    logger.warning("DDGS fallback failed for '%s': %s", name, e)
+                    logger.debug("DDGS image search failed for '%s': %s", name, e)
 
             if img_url:
-                product_images[name] = img_url
                 used_urls.add(img_url)
 
-            # Natural small pause between items
-            time.sleep(random.uniform(0.5, 1.0))
+            product_data[name] = {
+                "image": img_url or "",
+                "url": direct_url or ""
+            }
 
-        return product_images
+        return product_data
+
+    @classmethod
+    def fetch_product_images(cls, entities: List[Dict[str, Any]], max_items: int = 10) -> Dict[str, str]:
+        """Fetch clean, unique product photo URLs for physical product entities.
+
+        Returns:
+            Dict mapping product_name -> image_url
+        """
+        data = cls.fetch_product_data(entities, max_items=max_items)
+        return {name: info["image"] for name, info in data.items() if info.get("image")}
 
     @classmethod
     def _is_valid_image_url(cls, url: str, used_urls: set[str]) -> bool:

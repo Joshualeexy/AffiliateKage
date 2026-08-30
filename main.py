@@ -220,21 +220,26 @@ def run_pipeline(
                 state.update({"stage": "entities_extracted", "entities": entities})
                 save_state(state)
 
-        # 7.5 Fetch Product Images (code-only, instant)
+        # 7.5 Fetch Product Images & Direct URLs (code-only, instant)
         product_images = state.get("product_images", {})
-        if state["stage"] == "entities_extracted" and not product_images:
-            print("Starting stage: Fetch Product Images")
+        product_urls = state.get("product_urls", {})
+        if state["stage"] == "entities_extracted" and (not product_images or not product_urls):
+            print("Starting stage: Fetch Product Images & Direct Links")
             try:
                 category = topic.get("category", "") if topic else ""
-                product_images = ImageFetcher.fetch_product_images(
+                product_data = ImageFetcher.fetch_product_data(
                     state.get("entities", []),
                     max_items=10
                 )
+                product_images = {k: v.get("image", "") for k, v in product_data.items() if v.get("image")}
+                product_urls = {k: v.get("url", "") for k, v in product_data.items() if v.get("url")}
                 state["product_images"] = product_images
-                print(f"Completed stage: Fetch Product Images — Found {len(product_images)} images")
+                state["product_urls"] = product_urls
+                print(f"Completed stage: Fetch Product Images — Found {len(product_images)} images and {len(product_urls)} direct URLs")
             except Exception as e:
-                print(f"Warning: Image fetching failed: {e}. Continuing without product images.")
+                print(f"Warning: Image/link fetching failed: {e}. Continuing without product metadata.")
                 state["product_images"] = {}
+                state["product_urls"] = {}
 
         # 7.6 Enforce Smart Entity Links (code-only, instant)
         if state["stage"] == "entities_extracted":
@@ -261,12 +266,13 @@ def run_pipeline(
             )
             print("Completed stage: Enforce Software Entity Links")
 
-            # 7.7 Inject Visual Product Cards (code-only, instant)
+            # 7.7 Inject Visual Product Cards with Direct Links (code-only, instant)
             print("Starting stage: Inject Product Cards")
             state["article"]["content"] = content_sanitizer.inject_product_cards(
                 state["article"]["content"],
                 state.get("entities", []),
                 product_images=state.get("product_images", {}),
+                product_urls=state.get("product_urls", {}),
                 category=category,
             )
             print("Completed stage: Inject Product Cards")

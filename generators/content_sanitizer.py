@@ -91,8 +91,8 @@ class ContentSanitizer:
         "tripit": "https://www.tripit.com",
     }
 
-    def __init__(self):
-        self.affiliate_tag = os.getenv("AMAZON_AFFILIATE_TAG", "")
+    def __init__(self, affiliate_tag: str = ""):
+        self.affiliate_tag = affiliate_tag or os.getenv("AMAZON_AFFILIATE_TAG", "ejiroinspire-20") or "ejiroinspire-20"
 
     def sanitize_plain_text(self, text: str) -> str:
         """Strip all Markdown bold and italic markers from plain text fields."""
@@ -252,31 +252,70 @@ class ContentSanitizer:
 
             name_lower = entity_name.lower().strip()
 
-            # Step 1: Check curated mapping
-            url = self.KNOWN_SOFTWARE_URLS.get(name_lower)
-
-            # Step 2: Check backend affiliate links for a matching pattern
-            if not url and affiliate_links:
+            # Step 1: Check backend affiliate links first (highest priority)
+            if affiliate_links:
                 for mapping in affiliate_links:
-                    pattern = mapping.get("pattern", "").lower()
-                    if pattern and pattern in name_lower:
-                        url = mapping.get("url")
+                    pattern = mapping.get("pattern", "").lower().strip()
+                    mapping_name = mapping.get("name", "").lower().strip()
+                    aff_url = mapping.get("url")
+                    if not aff_url:
+                        continue
+
+                    # Extract core brand name from pattern (e.g., 'hostinger.com' -> 'hostinger')
+                    clean_pattern = pattern.replace("www.", "").split("/")[0]
+                    core_pattern = clean_pattern.split(".")[0] if "." in clean_pattern else clean_pattern
+
+                    if (
+                        core_pattern and (core_pattern in name_lower or name_lower in core_pattern)
+                        or (mapping_name and (name_lower in mapping_name or mapping_name in name_lower))
+                        or (clean_pattern and clean_pattern in name_lower)
+                    ):
+                        url = aff_url
+                        print(f"Content Sanitizer: Mapped software entity '{entity_name}' to affiliate URL '{url}'")
                         break
 
-            # Step 3: If no URL found, skip this entity (don't guess)
+            # Step 2: Fall back to curated KNOWN_SOFTWARE_URLS mapping
+            if not url:
+                url = self.KNOWN_SOFTWARE_URLS.get(name_lower)
+
+            # Step 3: If no URL found, skip this entity
             if not url:
                 continue
 
             content = self._wrap_entity_in_link(content, entity_name, url)
 
+        # Global pass: Also ensure any backend affiliate link whose brand appears in text is linked
+        if affiliate_links:
+            for mapping in affiliate_links:
+                aff_url = mapping.get("url")
+                if not aff_url:
+                    continue
+                pattern = mapping.get("pattern", "").lower().strip()
+                clean_pattern = pattern.replace("www.", "").split("/")[0]
+                core_brand = clean_pattern.split(".")[0] if "." in clean_pattern else clean_pattern
+                mapping_name = mapping.get("name", "").strip()
+
+                brand_candidates = [core_brand.capitalize(), mapping_name.split()[0]]
+                for brand in brand_candidates:
+                    if len(brand) >= 3 and brand.lower() not in {"the", "and", "app", "pro"}:
+                        content = self._wrap_entity_in_link(content, brand, aff_url)
+
         return content
 
-    def inject_product_cards(self, content: str, entities: list, product_images: dict = None, category: str = "") -> str:
+    def inject_product_cards(
+        self, 
+        content: str, 
+        entities: list, 
+        product_images: dict = None, 
+        product_urls: dict = None,
+        category: str = ""
+    ) -> str:
         """Inject styled visual product highlight cards under top product H3 sections."""
         if not entities:
             return content
 
         product_images = product_images or {}
+        product_urls = product_urls or {}
         product_entities = [
             e for e in entities
             if isinstance(e, dict)
@@ -322,11 +361,14 @@ class ContentSanitizer:
                     elif img_url:
                         used_images.add(img_url)
 
+                    direct_url = product_urls.get(matched_product, "")
+
                     card_html = self._render_product_card(
                         product_name=matched_product,
                         badge=badge,
                         sub_badge=sub_badge,
                         image_url=img_url,
+                        direct_url=direct_url,
                         affiliate_tag=self.affiliate_tag
                     )
                     new_lines.append("")
@@ -336,12 +378,26 @@ class ContentSanitizer:
 
         return '\n'.join(new_lines)
 
-    def _render_product_card(self, product_name: str, badge: str, sub_badge: str = "⭐ Editor's Choice", image_url: str = "", affiliate_tag: str = "") -> str:
+    def _render_product_card(
+        self, 
+        product_name: str, 
+        badge: str, 
+        sub_badge: str = "⭐ Editor's Choice", 
+        image_url: str = "", 
+        direct_url: str = "",
+        affiliate_tag: str = ""
+    ) -> str:
         """Generate a self-contained, responsive HTML product showcase card."""
-        encoded = quote_plus(product_name)
-        amazon_url = f"https://www.amazon.com/s?k={encoded}"
-        if affiliate_tag:
-            amazon_url += f"&tag={affiliate_tag}"
+        if direct_url and direct_url.startswith("http"):
+            amazon_url = direct_url
+            if affiliate_tag and "tag=" not in amazon_url:
+                delim = "&" if "?" in amazon_url else "?"
+                amazon_url += f"{delim}tag={affiliate_tag}"
+        else:
+            encoded = quote_plus(product_name)
+            amazon_url = f"https://www.amazon.com/s?k={encoded}"
+            if affiliate_tag:
+                amazon_url += f"&tag={affiliate_tag}"
 
         image_html = ""
         if image_url:
