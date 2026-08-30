@@ -1,5 +1,7 @@
-# 🚀 Ejiro Inspire: Autonomous Content & Affiliate Publishing Engine
+# 🥷 AffiliateKage (影)
+### Autonomous AI Content, Stealth Scraping & Affiliate Publishing Engine
 
+[![Live Showcase](https://img.shields.io/badge/Live%20Showcase-ejiroinspire.com-blueviolet?style=for-the-badge)](https://ejiroinspire.com)
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Node Version](https://img.shields.io/badge/node-18%2B-green.svg)](https://nodejs.org/)
 [![Engine](https://img.shields.io/badge/LLM-Ollama-purple.svg)](https://ollama.ai/)
@@ -7,7 +9,11 @@
 [![Scraper](https://img.shields.io/badge/Scraper-Playwright%20Stealth-red.svg)](https://github.com/berstend/puppeteer-extra)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-An end-to-end autonomous publishing, research, monetization, and content orchestration engine. It continuously discovers high-intent buyer topics, performs grounded web research, generates publication-ready long-form articles, classifies physical vs. digital entities, extracts verified Amazon product data without official PA-API requirements, renders AI hero images, and publishes directly to a headless CMS.
+**AffiliateKage** is an end-to-end autonomous publishing, deep research, and monetization engine that operates silently in the background. It continuously discovers high-intent buyer topics, performs grounded web research, generates publication-ready long-form articles, classifies physical vs. digital entities, extracts verified Amazon product data without official PA-API requirements via stealth browser automation, renders AI hero images, and publishes directly to your headless CMS.
+
+> *"Operate in the shadows. Command the content. Monetize autonomously."*
+> 
+> ⚡ **Live Production Demo:** Powers all publications on [ejiroinspire.com](https://ejiroinspire.com)
 
 ---
 

@@ -16,14 +16,11 @@ NC='\033[0m' # No Color
 
 echo -e "${CYAN}${BOLD}"
 cat << "EOF"
-  ______    _ _              _____                 _          
- |  ____|  (_) (_)          |_   _|               (_)         
- | |__      _| |_ _ __ ___    | |  _ __  ___ _ __  _ _ __ ___ 
- |  __|    | | | | '__/ _ \   | | | '_ \/ __| '_ \| | '__/ _ \
- | |____   | | | | | | (_) | _| |_| | | \__ \ |_) | | | |  __/
- |______|  | |_|_|_|  \___/ |_____|_| |_|___/ .__/|_|_|  \___|
-          _/ |                              | |               
-         |__/                               |_|               
+    ___       _____ __ _       __       __ __                  
+   /   |     / __(_) (_)___ _ / /____  / //_/__ _____ ____     
+  / /| |    / /_/ / / / __ `// __/ _ \/ ,< / _ `/ _ `/ -_)     
+ / ___ |   / __/ / / / /_/ // /_/  __/ /| /\_,_/\_, /\__/      
+/_/  |_|  /_/ /_/_/_/\__,_/ \__/\___/_/ |_|    /___/           
    Autonomous Content, Research & Affiliate Monetization Stack
 EOF
 echo -e "${NC}"
@@ -142,22 +139,24 @@ else
     log_info ".env already exists. Preserving your existing configuration."
 fi
 
-# ── 6. Setup Global CLI Command ───────────────────────────────────────────────
-log_info "Step 6/6: Installing global 'ejiroinspire' CLI command..."
+# ── 6. Setup Global CLI Commands ──────────────────────────────────────────────
+log_info "Step 6/6: Installing global CLI commands ('affiliatekage' & 'ejiroinspire')..."
 
 chmod +x "${PROJECT_DIR}/ejiroinspire"
 
 INSTALL_GLOBAL=false
 if [ -d "$HOME/.local/bin" ]; then
     ln -sf "${PROJECT_DIR}/ejiroinspire" "$HOME/.local/bin/ejiroinspire"
+    ln -sf "${PROJECT_DIR}/ejiroinspire" "$HOME/.local/bin/affiliatekage"
     INSTALL_GLOBAL=true
 elif [ -d "/usr/local/bin" ] && [ -w "/usr/local/bin" ]; then
     ln -sf "${PROJECT_DIR}/ejiroinspire" "/usr/local/bin/ejiroinspire"
+    ln -sf "${PROJECT_DIR}/ejiroinspire" "/usr/local/bin/affiliatekage"
     INSTALL_GLOBAL=true
 fi
 
 if [ "$INSTALL_GLOBAL" = true ]; then
-    log_success "Installed global command: 'ejiroinspire'"
+    log_success "Installed global commands: 'affiliatekage' and 'ejiroinspire'"
 else
     log_warn "Could not link to ~/.local/bin. You can run './ejiroinspire start' directly from this directory."
 fi
@@ -165,15 +164,15 @@ fi
 # ── Finished ──────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}${BOLD}================================================================${NC}"
-echo -e "${GREEN}${BOLD}   🎉 Installation Complete! Ejiro Inspire Engine is Ready!     ${NC}"
+echo -e "${GREEN}${BOLD}   🥷 Installation Complete! AffiliateKage is Ready to Run!     ${NC}"
 echo -e "${GREEN}${BOLD}================================================================${NC}"
 echo ""
 echo -e "Next steps:"
 echo -e "  1. Verify/edit your ${CYAN}.env${NC} file (set your ${BOLD}API_URL${NC}, ${BOLD}API_TOKEN${NC}, ${BOLD}OLLAMA_MODEL${NC})."
 echo -e "  2. Start the entire engine with one command:"
-echo -e "     ${GREEN}${BOLD}ejiroinspire start${NC}   (or ${CYAN}./ejiroinspire start${NC})"
+echo -e "     ${GREEN}${BOLD}affiliatekage start${NC}   (or ${CYAN}./ejiroinspire start${NC})"
 echo ""
 echo -e "Useful Commands:"
-echo -e "  - Check status:  ${CYAN}ejiroinspire status${NC}"
-echo -e "  - Stop stack:    ${CYAN}ejiroinspire stop${NC}"
+echo -e "  - Check status:  ${CYAN}affiliatekage status${NC}"
+echo -e "  - Stop stack:    ${CYAN}affiliatekage stop${NC}"
 echo ""
