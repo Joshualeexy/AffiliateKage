@@ -60,3 +60,5 @@ yarn-error.log*
 *profile/
 **/*profile/
 pipeline_state.json
+generated_topics.json
+example_output.json
