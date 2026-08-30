@@ -1,0 +1,1 @@
+!function(){"use strict";window.canRunAds=!0,window.isAdBlockActive=!1}();

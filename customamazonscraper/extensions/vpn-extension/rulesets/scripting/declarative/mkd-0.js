@@ -1,0 +1,1 @@
+!function(){const e=new Map([["stream.mk",1],["sportski.mk",2]]);self.declarativeImports=self.declarativeImports||[],self.declarativeImports.push({argsList:["",'{"selector":"#ablockercheck","action":["style","display: block !important;"]}','{"selector":"body","action":["style","background-image: none !important;"]}'],argsSeqs:[0,1,2],hostnamesMap:e,hasEntities:!1})}();

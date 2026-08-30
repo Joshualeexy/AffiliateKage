@@ -1,0 +1,1 @@
+!function(){const s=new Map([["metruyencv.com",1],["metruyencv.net",1]]);self.proceduralImports=self.proceduralImports||[],self.proceduralImports.push({argsList:["",['{"selector":".text-center","tasks":[["has",{"selector":"small","tasks":[["has-text","QUẢNG CÁO"]]}]]}']],argsSeqs:[0,1],hostnamesMap:s,hasEntities:!1})}();

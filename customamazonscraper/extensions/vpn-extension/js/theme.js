@@ -1,0 +1,1 @@
+import{dom}from"./dom.js";{const o=self.matchMedia("(prefers-color-scheme: dark)"),m=o instanceof Object&&!0===o.matches?"dark":"light";dom.cl.toggle(dom.html,"dark","dark"===m),dom.cl.toggle(dom.html,"light","dark"!==m)}{const o=!0!==self.matchMedia("(hover: hover)").matches;dom.cl.toggle(dom.html,"mobile",o),dom.cl.toggle(dom.html,"desktop",!1===o)}

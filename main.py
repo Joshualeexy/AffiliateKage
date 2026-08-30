@@ -23,6 +23,7 @@ from research.crawl4ai_provider import Crawl4AiProvider
 from research.duckduckgo import DuckDuckGoProvider
 
 from services.api import ApiClient
+from services.image_generator import ImageGenerator
 from services.comfy import ComfyClient
 from services.markdown import to_html
 from services.image_fetcher import ImageFetcher
@@ -47,7 +48,7 @@ def clear_state() -> None:
 
 def run_pipeline(
     api: ApiClient, 
-    comfy: ComfyClient, 
+    image_generator: ImageGenerator, 
     topic_generator: TopicGenerator, 
     article_generator: ArticleGenerator, 
     image_prompt_generator: ImagePromptGenerator,
@@ -332,15 +333,12 @@ def run_pipeline(
             if not image_path:
                 print("Starting stage: Generate Featured Image")
                 try:
-                    # Let the ComfyClient handle process management now
-                    image_path = comfy.generate(image_prompt)
+                    image_path = image_generator.generate(image_prompt)
                     print("Completed stage: Generate Featured Image")
                     state.update({"stage": "publish_ready", "image_path": image_path})
                     save_state(state)
                 except Exception as e:
                     print(f"Failed to generate image: {e}")
-                    print("This might be due to ComfyUI not running or memory issues.")
-                    print("Please ensure ComfyUI server is running on 127.0.0.1:8188")
                     raise
 
         # 12. Publish
@@ -371,8 +369,7 @@ def main(clear_saved_state: bool = False):
 
     try:
         api = ApiClient()
-        # Pass None for comfy_server_process to let ComfyClient manage its own processes
-        comfy = ComfyClient(workflow_path="services/workflow.json", comfy_server_process=None)
+        image_generator = ImageGenerator()
 
         topic_generator = TopicGenerator()
         article_generator = ArticleGenerator()
@@ -390,7 +387,7 @@ def main(clear_saved_state: bool = False):
 
         while True:
             run_pipeline(
-                api, comfy, topic_generator, article_generator, image_prompt_generator,
+                api, image_generator, topic_generator, article_generator, image_prompt_generator,
                 classifier, researcher, outline_generator, validator, entity_extractor,
                 content_sanitizer, internal_link_injector, affiliate_link_injector,
             )

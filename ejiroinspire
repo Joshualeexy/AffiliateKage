@@ -5,7 +5,15 @@
 
 set -e
 
-PROJECT_DIR="/home/kodar/project/Ejiroinspire"
+# Resolve canonical project root directory even when invoked through a symlink
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+PROJECT_DIR="$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)"
+
 SCRAPER_DIR="${PROJECT_DIR}/customamazonscraper"
 VENV_PYTHON="${PROJECT_DIR}/venv/bin/python"
 PORT=4000

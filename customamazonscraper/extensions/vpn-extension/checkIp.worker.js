@@ -1,0 +1,1 @@
+self.onmessage=function(s){"nossl_call"===s.data&&fetch("https://nosslscribe.com").then((s=>s.text())).then((s=>self.postMessage({error:null,data:JSON.stringify(s),message:"fetched nosslscribe.com"}))).catch((s=>{self.postMessage({error:JSON.stringify(s),data:null,message:s.toString()})}))};

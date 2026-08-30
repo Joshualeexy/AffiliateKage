@@ -1,0 +1,1 @@
+!function(){"use strict";const t=window,n=function(){}.bind(),i=t.apstag&&t.apstag._Q||[],s={_Q:i,fetchBids:function(t,n){"function"==typeof n&&n([])},init:n,setDisplayBids:n,targetingKeys:n};t.apstag=s,i.push=function(t,n){try{if("f"===t)s.fetchBids(...n)}catch(t){console.trace(t)}};for(const t of i)i.push(t)}();

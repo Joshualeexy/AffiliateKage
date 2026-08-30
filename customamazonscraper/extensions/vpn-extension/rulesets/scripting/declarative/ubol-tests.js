@@ -1,0 +1,1 @@
+!function(){const i=new Map([["ublockorigin.github.io",1],["localhost",1]]);self.declarativeImports=self.declarativeImports||[],self.declarativeImports.push({argsList:["",'{"selector":"#ccf3 .fail","action":["style","visibility: hidden"]}\n{"selector":"#ccf5 .fail-pseudo::before","action":["style","visibility: hidden"]}'],argsSeqs:[0,1],hostnamesMap:i,hasEntities:!1})}();

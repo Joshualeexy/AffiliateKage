@@ -1,0 +1,1 @@
+!function(){const s=new Map([["postimees.ee",1]]);self.proceduralImports=self.proceduralImports||[],self.proceduralImports.push({argsList:["",['{"selector":"article.article","action":["remove-class","cookie-paywall-visible"]}','{"selector":"aside","tasks":[["has-text","Sisuturundus"]]}']],argsSeqs:[0,1],hostnamesMap:s,hasEntities:!1})}();

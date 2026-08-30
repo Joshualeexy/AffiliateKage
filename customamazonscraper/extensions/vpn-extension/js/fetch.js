@@ -1,0 +1,1 @@
+function fetchJSON(n){return fetch(`${n}.json`).then((n=>n.json())).catch((n=>{console.info(n)}))}export{fetchJSON};

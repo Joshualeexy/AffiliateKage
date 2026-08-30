@@ -1,0 +1,1 @@
+!function(){const s=new Map([["monitor.si",1],["partis.si",2]]);self.proceduralImports=self.proceduralImports||[],self.proceduralImports.push({argsList:["",['{"selector":"li.article","tasks":[["has-text","Oglasno sporočilo"]]}'],['{"selector":"a.card","tasks":[["has-text","Oglas"]]}']],argsSeqs:[0,1,2],hostnamesMap:s,hasEntities:!1})}();

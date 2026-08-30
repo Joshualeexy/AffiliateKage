@@ -1,0 +1,1 @@
+!function(){const s=new Map([["1819.is",1]]);self.proceduralImports=self.proceduralImports||[],self.proceduralImports.push({argsList:["",['{"selector":".d-flex.flex-column.mx-auto","tasks":[["has-text","AUGLÝSING"]]}']],argsSeqs:[0,1],hostnamesMap:s,hasEntities:!1})}();

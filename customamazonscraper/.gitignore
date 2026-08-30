@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Local Environment Variables (contains CapSolver API keys, credentials, etc.)
+.env
+.env.local
+
+# Persistent browser profile caches and test files
+amazon_profile/
+*profile/
+browser_profile/
+
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS specific files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,1040 @@
+{
+  "extName": {
+    "message": "uBlock Origin Lite",
+    "description": "extension name."
+  },
+  "extShortDesc": {
+    "message": "一個無須授權的內容封鎖器。安裝後即可立即封鎖廣告、追蹤器、挖礦程式等等。",
+    "description": "this will be in the Chrome web store: must be 132 characters or less"
+  },
+  "perRulesetStats": {
+    "message": "{{ruleCount}} 條規則，由 {{filterCount}} 條網路過濾規則轉換而來",
+    "description": "Appears aside each filter list in the _3rd-party filters_ pane"
+  },
+  "dashboardName": {
+    "message": "uBO Lite — 控制台",
+    "description": "English: uBO Lite — Dashboard"
+  },
+  "settingsPageName": {
+    "message": "設定",
+    "description": "appears as tab name in dashboard"
+  },
+  "developPageName": {
+    "message": "開發",
+    "description": "appears as tab name in dashboard. Inspired from 'Develop' menu in Safari, see https://developer.apple.com/documentation/safari-developer-tools/develop-menu"
+  },
+  "aboutPageName": {
+    "message": "關於",
+    "description": "appears as tab name in dashboard"
+  },
+  "aboutPrivacyPolicy": {
+    "message": "隱私權政策",
+    "description": "Link to privacy policy on GitHub (English)"
+  },
+  "popupFilteringModeLabel": {
+    "message": "過濾模式",
+    "description": "Label in the popup panel for the current filtering mode"
+  },
+  "popupLocalToolsLabel": {
+    "message": "在此網站上",
+    "description": "Label in the popup panel for the local tools section"
+  },
+  "popupTipReport": {
+    "message": "回報此網站的問題",
+    "description": "Tooltip used for the 'chat' icon in the panel"
+  },
+  "popupTipDashboard": {
+    "message": "開啟控制台",
+    "description": "English: Click to open the dashboard"
+  },
+  "popupMoreButton": {
+    "message": "更多",
+    "description": "Label to be used to show popup panel sections"
+  },
+  "popupLessButton": {
+    "message": "更少",
+    "description": "Label to be used to hide popup panel sections"
+  },
+  "3pGroupDefault": {
+    "message": "預設",
+    "description": "Header for a ruleset section in 'Filter lists pane'"
+  },
+  "3pGroupAds": {
+    "message": "廣告",
+    "description": "Header for a ruleset section in 'Filter lists pane'"
+  },
+  "3pGroupPrivacy": {
+    "message": "隱私",
+    "description": "Header for a ruleset section in 'Filter lists pane'"
+  },
+  "3pGroupMalware": {
+    "message": "惡意網域",
+    "description": "Header for a ruleset section in 'Filter lists pane'"
+  },
+  "3pGroupAnnoyances": {
+    "message": "嫌惡元素",
+    "description": "Header for a ruleset section in 'Filter lists pane'"
+  },
+  "3pGroupMisc": {
+    "message": "其他",
+    "description": "Header for a ruleset section in 'Filter lists pane'"
+  },
+  "3pGroupRegions": {
+    "message": "地區及語言",
+    "description": "Header for a ruleset section in 'Filter lists pane'"
+  },
+  "aboutChangelog": {
+    "message": "變更日誌",
+    "description": ""
+  },
+  "aboutCode": {
+    "message": "原始碼（GPLv3）",
+    "description": "English: Source code (GPLv3)"
+  },
+  "aboutContributors": {
+    "message": "貢獻者",
+    "description": "English: Contributors"
+  },
+  "aboutSourceCode": {
+    "message": "原始碼",
+    "description": "Link text to source code repo"
+  },
+  "aboutTranslations": {
+    "message": "翻譯",
+    "description": "Link text to translations repo"
+  },
+  "aboutFilterLists": {
+    "message": "過濾規則清單",
+    "description": "Link text to uBO's own filter lists repo"
+  },
+  "aboutDependencies": {
+    "message": "外部依存套件（相容 GPLv3）：",
+    "description": "Shown in the About pane"
+  },
+  "supportS6H": {
+    "message": "回報過濾規則問題",
+    "description": "Header of 'Report a filter issue' section in Support pane"
+  },
+  "supportS3P1": {
+    "message": "將特定網站的過濾器問題回報至 <span data-url=\"https://github.com/uBlockOrigin/uAssets/issues?q=is%3Aissue\"><code>uBlockOrigin/uAssets</code> 議題追蹤器</span>。<u>需要 GitHub 帳號。</u>.",
+    "description": "First paragraph of 'Filter issues' section in Support pane"
+  },
+  "supportS5H": {
+    "message": "疑難排解資訊",
+    "description": "Label of 'Troubleshooting information' section in 'Report a filter issue' page"
+  },
+  "supportS6P1S1": {
+    "message": "為避免增加志願者的負擔，請先確認此問題是否已被回報過。<b>請注意：</b>點選按鈕會將本頁的來源傳送到 GitHub。",
+    "description": "A paragraph in the filter issue reporter section"
+  },
+  "supportFindSpecificButton": {
+    "message": "尋找類似報告",
+    "description": "A clickable link in the filter issue reporter section"
+  },
+  "supportS6URL": {
+    "message": "網址：",
+    "description": "Label for the URL of the page"
+  },
+  "supportS6Select1": {
+    "message": "網頁……",
+    "description": "Label for widget to select type of issue"
+  },
+  "supportS6Select1Option0": {
+    "message": "-- 選擇一項 --",
+    "description": "An entry in the widget used to select the type of issue"
+  },
+  "supportS6Select1Option1": {
+    "message": "會顯示廣告或廣告殘留物",
+    "description": "An entry in the widget used to select the type of issue"
+  },
+  "supportS6Select1Option2": {
+    "message": "有覆蓋層或其他干擾",
+    "description": "An entry in the widget used to select the type of issue"
+  },
+  "supportS6Select1Option3": {
+    "message": "偵測到 uBO Lite",
+    "description": "An entry in the widget used to select the type of issue"
+  },
+  "supportS6Select1Option4": {
+    "message": "有隱私相關問題",
+    "description": "An entry in the widget used to select the type of issue"
+  },
+  "supportS6Select1Option5": {
+    "message": "在 uBO Lite 啟用時運作異常",
+    "description": "An entry in the widget used to select the type of issue"
+  },
+  "supportS6Select1Option6": {
+    "message": "開啟不需要的分頁或視窗",
+    "description": "An entry in the widget used to select the type of issue"
+  },
+  "supportS6Select1Option7": {
+    "message": "導向惡意軟體、釣魚網站",
+    "description": "An entry in the widget used to select the type of issue"
+  },
+  "supportS6Checkbox1": {
+    "message": "將網頁標記為「NSFW」（<a href=\"https://wikipedia.org/wiki/Not_safe_for_work\">「工作場所不宜」</a>）",
+    "description": "A checkbox to use for NSFW sites"
+  },
+  "supportReportSpecificButton": {
+    "message": "建立新報告",
+    "description": "Text for button which open an external webpage in Support pane"
+  },
+  "defaultFilteringModeSectionLabel": {
+    "message": "預設過濾模式",
+    "description": "The header text for the default filtering mode section"
+  },
+  "defaultFilteringModeDescription": {
+    "message": "預設過濾模式將被每個網站的過濾模式覆寫。你可以根據每個網站的情況，調整該網站的過濾模式，以選擇最適合的模式。每種模式都有其優缺點。",
+    "description": "This describes the default filtering mode setting"
+  },
+  "filteringMode0Name": {
+    "message": "不過濾",
+    "description": "Name of blocking mode 0"
+  },
+  "filteringMode1Name": {
+    "message": "基礎",
+    "description": "Name of blocking mode 1"
+  },
+  "filteringMode2Name": {
+    "message": "最佳",
+    "description": "Name of blocking mode 2"
+  },
+  "filteringMode3Name": {
+    "message": "完整",
+    "description": "Name of blocking mode 3"
+  },
+  "basicFilteringModeDescription": {
+    "message": "來自選定過濾條件清單的基礎網路過濾。\n\n不需要讀取與變更網站資料的權限。",
+    "description": "This describes the 'basic' filtering mode"
+  },
+  "optimalFilteringModeDescription": {
+    "message": "進階的網路過濾功能，並結合選定過濾清單中的特定延伸過濾。  \n\n需要授予讀取和修改所有網站資料的廣泛權限。",
+    "description": "This describes the 'optimal' filtering mode"
+  },
+  "completeFilteringModeDescription": {
+    "message": "進階網路過濾，加上從選定過濾清單中進行特定與通用延伸過濾。\n\n需要授予讀取和修改所有網站資料的廣泛權限。\n\n通用延伸過濾可能會導致較高的網頁資源使用量。",
+    "description": "This describes the 'complete' filtering mode"
+  },
+  "noFilteringModeDescription": {
+    "message": "白名單",
+    "description": "A short description for the editable field which lists trusted sites"
+  },
+  "noFilteringModePlaceholder": {
+    "message": "[僅主機名稱]\nexample.com\ngames.example\n...",
+    "description": "Default text for in edit field"
+  },
+  "behaviorSectionLabel": {
+    "message": "行為",
+    "description": "The header text for the 'Behavior' section"
+  },
+  "autoReloadLabel": {
+    "message": "變更過濾模式時自動重新載入",
+    "description": "Label for a checkbox in the options page"
+  },
+  "showBlockedCountLabel": {
+    "message": "在工具列圖示上顯示已封鎖請求的數量。",
+    "description": "Label for a checkbox in the options page"
+  },
+  "enableStrictBlockLabel": {
+    "message": "啟用嚴格阻擋",
+    "description": "Label for a checkbox in the options page"
+  },
+  "enableStrictBlockLegend": {
+    "message": "前往潛在不良網站的導航將被阻止，您可以選擇是否繼續前往。",
+    "description": "Short description for a checkbox in the options page"
+  },
+  "developerModeLabel": {
+    "message": "開發人員模式",
+    "description": "Label for a checkbox in the options page"
+  },
+  "developerModeLegend": {
+    "message": "啟用適合技術使用者使用的功能。",
+    "description": "Short description for a checkbox in the options page"
+  },
+  "findListsPlaceholder": {
+    "message": "尋找清單",
+    "description": "Placeholder for the input field used to find lists"
+  },
+  "strictblockTitle": {
+    "message": "已封鎖頁面",
+    "description": "Webpage title for the strict-blocked page"
+  },
+  "strictblockSentence1": {
+    "message": "uBO Lite 已防止下列頁面載入：",
+    "description": "Sentence used in the strict-blocked page"
+  },
+  "strictblockReasonSentence1": {
+    "message": "由於符合 {{listname}} 中的過濾規則，此頁面已被封鎖。",
+    "description": "Text informing about what is causing the page to be blocked"
+  },
+  "strictblockRedirectSentence1": {
+    "message": "被阻擋的頁面想要重定向到另一個網站。如果您選擇繼續，將直接導航至：{{url}}",
+    "description": "Text warning about an incoming redirect"
+  },
+  "strictblockNoParamsPrompt": {
+    "message": "不帶參數",
+    "description": "Label to be used for the parameter-less URL"
+  },
+  "strictblockBack": {
+    "message": "返回",
+    "description": "A button to go back to the previous webpage"
+  },
+  "strictblockClose": {
+    "message": "關閉此視窗",
+    "description": "A button to close the current tab"
+  },
+  "strictblockDontWarn": {
+    "message": "不再就此網站警告我",
+    "description": "Label for checkbox in document-blocked page"
+  },
+  "strictblockProceed": {
+    "message": "繼續",
+    "description": "A button to navigate to the blocked page"
+  },
+  "zapperTipEnter": {
+    "message": "進入元素臨時移除模式",
+    "description": "Tooltip for the button used to enter zapper mode"
+  },
+  "zapperTipQuit": {
+    "message": "離開元素臨時移除模式",
+    "description": "Tooltip for the button used to exit zapper mode"
+  },
+  "pickerTipEnter": {
+    "message": "建立自訂過濾器",
+    "description": "Label for the menu entry to create cosmetic filters"
+  },
+  "unpickerTipEnter": {
+    "message": "移除自訂過濾器",
+    "description": "Label for the menu entry to delete cosmetic filters"
+  },
+  "developDropdownLabel": {
+    "message": "檢視：",
+    "description": "A label of a dropdown list"
+  },
+  "developOptionFilteringModeDetails": {
+    "message": "過濾模式詳細資訊",
+    "description": "An option in a dropdown list"
+  },
+  "developOptionCustomDnrRules": {
+    "message": "自訂 DNR 規則",
+    "description": "An option in a dropdown list"
+  },
+  "developOptionDnrRulesOf": {
+    "message": "DNR 規則……",
+    "description": "A section header in a dropdown list"
+  },
+  "developOptionDynamicRuleset": {
+    "message": "動態規則集",
+    "description": "An option in a dropdown list"
+  },
+  "developOptionSessionRuleset": {
+    "message": "工作階段規則集",
+    "description": "An option in a dropdown list"
+  },
+  "saveButton": {
+    "message": "儲存",
+    "description": "Text for buttons used to save changes"
+  },
+  "revertButton": {
+    "message": "還原",
+    "description": "Text for buttons used to revert changes"
+  },
+  "importAndAppendButton": {
+    "message": "匯入並加入…",
+    "description": "Text for buttons used to import and append content"
+  },
+  "exportButton": {
+    "message": "匯出…",
+    "description": "Text for buttons used to export content"
+  },
+  "dnrRulesWarning": {
+    "message": "切勿新增來自不受信任來源的內容",
+    "description": "Short description of the DNR rules editor pane"
+  },
+  "dnrRulesCountInfo": {
+    "message": "已登錄規則數：{count}",
+    "description": "Short sentence to report the number of currently registered DNR rules"
+  },
+  "pickerSliderLabel": {
+    "message": "移動滑桿以選取最佳符合",
+    "description": "Label to describe the purpose of the slider"
+  },
+  "pickerPick": {
+    "message": "挑選",
+    "description": "Text for the button to re-enter element-picking mode"
+  },
+  "pickerPreview": {
+    "message": "預覽",
+    "description": "Text for the button to activate preview mode"
+  },
+  "pickerCreate": {
+    "message": "建立",
+    "description": "Text for the button to create the filter"
+  },
+  "unpickerUsage": {
+    "message": "選取下方的過濾器，突顯網頁中符合條件的元素。按一下回收桶可移除過濾器",
+    "description": "Summary description on how to use the tool to remove custom filters"
+  },
+  "wsext_on": {
+    "message": "開",
+    "description": "The extension is enabled"
+  },
+  "wsext_off": {
+    "message": "關",
+    "description": "The extension is disabled"
+  },
+  "wsext_connecting": {
+    "message": "連線中...",
+    "description": "The extension is connecting to the internet"
+  },
+  "wsext_disconnecting": {
+    "message": "中斷連線中...",
+    "description": "The extension is disconnecting from the internet"
+  },
+  "wsext_offline": {
+    "message": "離線",
+    "description": "The extension is offline"
+  },
+  "wsext_autopilot": {
+    "message": "自動駕駛",
+    "description": "Option to enable or manage autopilot features."
+  },
+  "wsext_preferences": {
+    "message": "偏好設定",
+    "description": "User preferences and settings."
+  },
+  "wsext_general": {
+    "message": "一般",
+    "description": "General settings and configurations."
+  },
+  "wsext_connection": {
+    "message": "連線",
+    "description": "Manage connection settings and status."
+  },
+  "wsext_blocker": {
+    "message": "封鎖器",
+    "description": "Feature to block unwanted content or ads."
+  },
+  "wsext_privacy": {
+    "message": "隱私",
+    "description": "Privacy-related settings and controls."
+  },
+  "wsext_account": {
+    "message": "帳號",
+    "description": "Manage user account details."
+  },
+  "wsext_allowlist": {
+    "message": "允許清單",
+    "description": "List of allowed websites or items."
+  },
+  "wsext_change_theme": {
+    "message": "更改主題",
+    "description": "Option to switch between different themes."
+  },
+  "wsext_restart_onboarding": {
+    "message": "重新開始引導",
+    "description": "Restart the onboarding process for the extension."
+  },
+  "wsext_get_support": {
+    "message": "取得支援",
+    "description": "Access support resources or contact helpdesk."
+  },
+  "wsext_logout": {
+    "message": "登出",
+    "description": "Logout from the current account."
+  },
+  "wsext_newsfeed": {
+    "message": "新聞",
+    "description": "Access the latest news and updates."
+  },
+  "wsext_proxy_failure": {
+    "message": "代理失敗",
+    "description": "Notification for proxy failure events."
+  },
+  "wsext_notifications": {
+    "message": "通知",
+    "description": "Manage notification settings for the extension."
+  },
+  "wsext_show_connect_disconnect_notifications": {
+    "message": "顯示連線/中斷連線系統通知。",
+    "description": "Option to display OS notifications when connecting or disconnecting."
+  },
+  "wsext_show_location_load": {
+    "message": "顯示位置負載",
+    "description": "Option to display the load of each data center."
+  },
+  "wsext_show_location_load_description": {
+    "message": "顯示每個資料中心的負載。",
+    "description": "Option to display the load of each data center."
+  },
+  "wsext_debug_context_menu": {
+    "message": "除錯右鍵選單",
+    "description": "Option to display the debug log in the context menu."
+  },
+  "wsext_debug_context_menu_description": {
+    "message": "在右鍵選單中顯示除錯日誌。",
+    "description": "Option to display the debug log in the context menu."
+  },
+  "wsext_language": {
+    "message": "語言",
+    "description": "Select the language for the extension."
+  },
+  "wsext_language_description": {
+    "message": "選擇擴充功能的語言。",
+    "description": "Option to select the language for the extension."
+  },
+  "wsext_debug_log": {
+    "message": "除錯日誌",
+    "description": "Access the debug log of the extension."
+  },
+  "wsext_clear_log": {
+    "message": "清除日誌",
+    "description": "Button label to clear the debug log."
+  },
+  "wsext_show_user_info": {
+    "message": "顯示使用者資訊",
+    "description": "Button label to show user and device information on the debug log page."
+  },
+  "wsext_download_logs": {
+    "message": "下載日誌",
+    "description": "Button label to download debug logs."
+  },
+  "wsext_scroll_to_top": {
+    "message": "捲動到頂部",
+    "description": "Button label to scroll to the top of the debug log."
+  },
+  "wsext_scroll_to_bottom": {
+    "message": "捲動到底部",
+    "description": "Button label to scroll to the bottom of the debug log."
+  },
+  "wsext_no_logs_found": {
+    "message": "找不到日誌",
+    "description": "Empty state message when there are no debug logs."
+  },
+  "wsext_send": {
+    "message": "傳送",
+    "description": "Send the current debug log."
+  },
+  "wsext_view": {
+    "message": "檢視",
+    "description": "View the content or details."
+  },
+  "wsext_sent": {
+    "message": "已傳送!",
+    "description": "Notification confirming a successful send operation."
+  },
+  "wsext_error": {
+    "message": "錯誤",
+    "description": "Message displayed when an error occurs."
+  },
+  "wsext_view_licenses": {
+    "message": "檢視授權",
+    "description": "Option to view licenses associated with the extension."
+  },
+  "wsext_version": {
+    "message": "版本",
+    "description": "Displays the current version of the extension."
+  },
+  "wsext_keyboard_shortcuts": {
+    "message": "鍵盤快速鍵",
+    "description": "Title for the keyboard shortcuts option."
+  },
+  "wsext_keyboard_shortcuts_description": {
+    "message": "自訂鍵盤快速鍵以快速存取擴充功能",
+    "description": "Description for the keyboard shortcuts option."
+  },
+  "wsext_edit": {
+    "message": "編輯",
+    "description": "Generic edit button label."
+  },
+  "wsext_export": {
+    "message": "匯出",
+    "description": "Export settings button label."
+  },
+  "wsext_import": {
+    "message": "匯入",
+    "description": "Import settings button label."
+  },
+  "wsext_refresh_to_see_changes": {
+    "message": "重新整理以查看變更",
+    "description": "Alert telling the user to refresh the current tab to see the effect of changes."
+  },
+  "wsext_back_to": {
+    "message": "返回到$page$",
+    "description": "Aria label for the go-back button.",
+    "placeholders": {
+      "page": {
+        "content": "$1",
+        "example": "偏好設定"
+      }
+    }
+  },
+  "wsext_my_account": {
+    "message": "我的帳號",
+    "description": "Tooltip for the edit account button."
+  },
+  "wsext_info": {
+    "message": "資訊",
+    "description": "Subheader for the info section in the account page."
+  },
+  "wsext_username": {
+    "message": "使用者名稱",
+    "description": "Label for the username field."
+  },
+  "wsext_email": {
+    "message": "電子郵件",
+    "description": "Label for the email field."
+  },
+  "wsext_add_email_with_bonus": {
+    "message": "新增電子郵件 (+8GB)",
+    "description": "Call to action to add an email and earn extra data."
+  },
+  "wsext_plan": {
+    "message": "方案",
+    "description": "Subheader for the plan section in the account page."
+  },
+  "wsext_unlimited": {
+    "message": "無限制",
+    "description": "Indicates an unlimited plan or data."
+  },
+  "wsext_per_month": {
+    "message": "/月",
+    "description": "Suffix for monthly data values."
+  },
+  "wsext_pro": {
+    "message": "Pro",
+    "description": "Indicates a Pro account."
+  },
+  "wsext_upgrade": {
+    "message": "升級",
+    "description": "Button to upgrade the account."
+  },
+  "wsext_expiry_date": {
+    "message": "到期日",
+    "description": "Label for the premium expiry date."
+  },
+  "wsext_reset_date": {
+    "message": "重設日期",
+    "description": "Label for the data reset date."
+  },
+  "wsext_current_page": {
+    "message": "目前頁面",
+    "description": "Subheader for the currently active tab in the allowlist."
+  },
+  "wsext_allowlisted": {
+    "message": "已允許",
+    "description": "Subheader for the list of allowlisted sites."
+  },
+  "wsext_added_to_support": {
+    "message": "為支援而新增",
+    "description": "Prefix shown next to a domain that was added automatically to support another."
+  },
+  "wsext_edit_subheader": {
+    "message": "編輯",
+    "description": "Subheader when editing an allowlist entry."
+  },
+  "wsext_add_new": {
+    "message": "新增",
+    "description": "Subheader when adding a new allowlist entry."
+  },
+  "wsext_enter_valid_domain": {
+    "message": "請輸入有效網域",
+    "description": "Subheader when the entered allowlist domain is invalid."
+  },
+  "wsext_enter_domain_to_allowlist": {
+    "message": "輸入要加入允許清單的網域",
+    "description": "Placeholder for the allowlist domain input."
+  },
+  "wsext_allow_ads": {
+    "message": "允許廣告",
+    "description": "Toggle label allowing ads on the domain."
+  },
+  "wsext_allow_connection": {
+    "message": "允許連線",
+    "description": "Toggle label allowing direct connections on the domain."
+  },
+  "wsext_allow_privacy_features": {
+    "message": "允許隱私功能",
+    "description": "Toggle label allowing privacy features on the domain."
+  },
+  "wsext_apply_to_all_subdomains": {
+    "message": "套用到所有子網域",
+    "description": "Toggle label to apply allowlist settings to all subdomains."
+  },
+  "wsext_cancel": {
+    "message": "取消",
+    "description": "Generic cancel button label."
+  },
+  "wsext_save": {
+    "message": "儲存",
+    "description": "Generic save button label."
+  },
+  "wsext_delete": {
+    "message": "刪除",
+    "description": "Generic delete button label."
+  },
+  "wsext_add": {
+    "message": "新增",
+    "description": "Generic add button label."
+  },
+  "wsext_ad_crusher": {
+    "message": "Ad Crusher",
+    "description": "Title for the ad blocking feature."
+  },
+  "wsext_ad_crusher_description": {
+    "message": "廣告、惡意軟體、追蹤器、礦工等",
+    "description": "Description for the ad blocking feature."
+  },
+  "wsext_not_available_when_ublock_lite_enabled": {
+    "message": "啟用 uBlock Lite 時無法使用",
+    "description": "Tooltip explaining a feature is unavailable while uBlock Lite is enabled."
+  },
+  "wsext_social_distancing": {
+    "message": "社交距離",
+    "description": "Title for the social network blocking feature."
+  },
+  "wsext_social_distancing_description": {
+    "message": "封鎖追蹤社交網路的小工具與按鈕",
+    "description": "Description for the social network blocking feature."
+  },
+  "wsext_cookie_go_away": {
+    "message": "Cookie 走開",
+    "description": "Title for the cookie banner blocking feature."
+  },
+  "wsext_cookie_go_away_description": {
+    "message": "封鎖所有網站上煩人的「我們使用 cookies」橫幅",
+    "description": "Description for the cookie banner blocking feature."
+  },
+  "wsext_ublock_origin_lite": {
+    "message": "uBlock Origin Lite",
+    "description": "Title for the uBlock Origin Lite toggle."
+  },
+  "wsext_ublock_origin_lite_description": {
+    "message": "啟用 uBlock Lite 時封鎖器設定無法使用。請停用此設定以使用 Windscribe 的廣告封鎖器",
+    "description": "Description for the uBlock Origin Lite toggle."
+  },
+  "wsext_not_available_when_ublock_origin_lite_enabled": {
+    "message": "啟用 uBlock Origin Lite 時無法使用",
+    "description": "Tooltip explaining a feature is unavailable while uBlock Origin Lite is enabled."
+  },
+  "wsext_ublock_settings": {
+    "message": "uBlock 設定",
+    "description": "Link label opening the uBlock settings dashboard."
+  },
+  "wsext_sponsorblock_recommendation": {
+    "message": "試試 SponsorBlock 擴充功能,跳過 YouTube 影片中的贊助內容。",
+    "description": "Recommendation banner for the SponsorBlock extension."
+  },
+  "wsext_auto_connect": {
+    "message": "自動連線",
+    "description": "Title for the auto-connect feature."
+  },
+  "wsext_auto_connect_description": {
+    "message": "瀏覽器啟動時自動連線。",
+    "description": "Description for the auto-connect feature."
+  },
+  "wsext_smokewall": {
+    "message": "Smokewall",
+    "description": "Title for the smokewall feature."
+  },
+  "wsext_smokewall_description": {
+    "message": "即使代理失敗也不要中斷連線。",
+    "description": "Description for the smokewall feature."
+  },
+  "wsext_failover": {
+    "message": "Failover",
+    "description": "Title for the failover feature."
+  },
+  "wsext_failover_description": {
+    "message": "代理失敗時自動切換位置。",
+    "description": "Description for the failover feature."
+  },
+  "wsext_proxy_port": {
+    "message": "代理連接埠",
+    "description": "Title for the proxy port option."
+  },
+  "wsext_proxy_port_description": {
+    "message": "選擇要連線的連接埠。",
+    "description": "Description for the proxy port option."
+  },
+  "wsext_locations_menu": {
+    "message": "位置選單",
+    "description": "Tooltip for the globe button on the home page."
+  },
+  "wsext_ip_address_copied": {
+    "message": "IP 位址已複製",
+    "description": "Toast shown after copying the IP address."
+  },
+  "wsext_usage_bar": {
+    "message": "使用條",
+    "description": "Aria label for the usage bar."
+  },
+  "wsext_out_of_data": {
+    "message": "資料用完",
+    "description": "Shown when the user has used all of their data."
+  },
+  "wsext_left": {
+    "message": "剩餘",
+    "description": "Suffix for remaining data, e.g. '500 MB 剩餘'."
+  },
+  "wsext_get_more_data": {
+    "message": "取得更多資料",
+    "description": "Call to action for users without an account to get more data."
+  },
+  "wsext_allowlist_settings": {
+    "message": "允許清單設定",
+    "description": "Tooltip for the per-tab allowlist settings button."
+  },
+  "wsext_ads": {
+    "message": "廣告",
+    "description": "Tooltip for the per-tab ads toggle button."
+  },
+  "wsext_privacy_features": {
+    "message": "隱私功能",
+    "description": "Tooltip for the per-tab privacy features toggle button."
+  },
+  "wsext_login": {
+    "message": "登入",
+    "description": "Login screen title and submit button label."
+  },
+  "wsext_sign_up": {
+    "message": "註冊",
+    "description": "Sign up screen title and link label."
+  },
+  "wsext_password": {
+    "message": "密碼",
+    "description": "Label for the password field."
+  },
+  "wsext_username_should_not_be_email": {
+    "message": "您的使用者名稱不應該是電子郵件。",
+    "description": "Validation error when the username looks like an email."
+  },
+  "wsext_two_fa_code": {
+    "message": "2FA 驗證碼",
+    "description": "Label for the 2FA code input."
+  },
+  "wsext_two_fa_code_question": {
+    "message": "2FA 驗證碼?",
+    "description": "Button text to reveal the 2FA code input."
+  },
+  "wsext_two_fa_help": {
+    "message": "如已啟用,請使用驗證應用程式產生驗證碼。",
+    "description": "Helper text for the 2FA code input."
+  },
+  "wsext_forgot_password": {
+    "message": "忘記密碼?",
+    "description": "Link to the password reset flow."
+  },
+  "wsext_complete_puzzle_to_continue": {
+    "message": "完成拼圖以繼續",
+    "description": "Captcha instruction text."
+  },
+  "wsext_news_feed": {
+    "message": "新聞",
+    "description": "Title for the news feed page."
+  },
+  "wsext_today": {
+    "message": "今天",
+    "description": "Indicates an event happened today."
+  },
+  "wsext_day_ago": {
+    "message": "1 天前",
+    "description": "Indicates an event happened one day ago."
+  },
+  "wsext_days_ago": {
+    "message": "$count$ 天前",
+    "description": "Indicates how many days ago an event happened.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
+  },
+  "wsext_do_not_disturb": {
+    "message": "請勿打擾",
+    "description": "Title for the do not disturb privacy feature."
+  },
+  "wsext_do_not_disturb_description": {
+    "message": "封鎖所有網站向您發送垃圾通知。",
+    "description": "Description for the do not disturb privacy feature."
+  },
+  "wsext_click_to_grant_permission": {
+    "message": "點擊以授予權限。",
+    "description": "Tooltip prompting the user to grant a browser permission."
+  },
+  "wsext_grant_permission": {
+    "message": "授予權限",
+    "description": "Action prompting the user to grant a browser permission."
+  },
+  "wsext_unavailable_until_permission_granted": {
+    "message": "授予權限之前無法使用。",
+    "description": "Tooltip explaining a toggle is unavailable until a permission is granted."
+  },
+  "wsext_anti_fingerprinting": {
+    "message": "Anti Fingerprinting",
+    "description": "Title for the anti fingerprinting privacy feature."
+  },
+  "wsext_anti_fingerprinting_description": {
+    "message": "實驗性功能。嘗試抵抗指紋識別,但可能破壞或減慢網站。",
+    "description": "Description for the anti fingerprinting privacy feature."
+  },
+  "wsext_webrtc_slayer": {
+    "message": "WebRTC Slayer",
+    "description": "Title for the WebRTC Slayer privacy feature."
+  },
+  "wsext_webrtc_slayer_description": {
+    "message": "限制 WebRTC 請求以防止洩漏。可能破壞某些應用程式。",
+    "description": "Description for the WebRTC Slayer privacy feature."
+  },
+  "wsext_location_warp": {
+    "message": "Location Warp",
+    "description": "Title for the location warp privacy feature."
+  },
+  "wsext_location_warp_description": {
+    "message": "偽造您的 GPS 位置以匹配連線的代理。",
+    "description": "Description for the location warp privacy feature."
+  },
+  "wsext_not_available_in_autopilot": {
+    "message": "自動駕駛中無法使用",
+    "description": "Tooltip explaining a feature is not available while autopilot is selected."
+  },
+  "wsext_time_warp": {
+    "message": "Time Warp",
+    "description": "Title for the time warp privacy feature."
+  },
+  "wsext_time_warp_description": {
+    "message": "設定瀏覽器時間以匹配連線的代理。",
+    "description": "Description for the time warp privacy feature."
+  },
+  "wsext_language_warp": {
+    "message": "Language Warp",
+    "description": "Title for the language warp privacy feature."
+  },
+  "wsext_language_warp_description": {
+    "message": "設定語言和地區設定以匹配連線的代理。",
+    "description": "Description for the language warp privacy feature."
+  },
+  "wsext_split_personality": {
+    "message": "Split Personality",
+    "description": "Title for the split personality privacy feature."
+  },
+  "wsext_split_personality_description": {
+    "message": "隨機輪換您的使用者代理。",
+    "description": "Description for the split personality privacy feature."
+  },
+  "wsext_rotate_user_agent": {
+    "message": "輪換 User Agent",
+    "description": "Tooltip for the button that rotates the user agent now."
+  },
+  "wsext_split_personality_compat_mode": {
+    "message": "Split Personality 相容模式",
+    "description": "Title for the split personality compatibility mode option."
+  },
+  "wsext_split_personality_compat_mode_description": {
+    "message": "保持在瀏覽器的使用者代理系列內。有助於防止某些網站損壞。",
+    "description": "Description for the split personality compatibility mode option."
+  },
+  "wsext_not_available_when_split_personality_disabled": {
+    "message": "Split Personality 停用時無法使用",
+    "description": "Tooltip explaining a feature is unavailable when Split Personality is off."
+  },
+  "wsext_worker_block": {
+    "message": "Worker Block",
+    "description": "Title for the worker block privacy feature."
+  },
+  "wsext_worker_block_description": {
+    "message": "封鎖 web workers 在背景執行。",
+    "description": "Description for the worker block privacy feature."
+  },
+  "wsext_ad_privacy": {
+    "message": "Ad Privacy",
+    "description": "Title for the ad privacy feature."
+  },
+  "wsext_ad_privacy_description": {
+    "message": "停用內容相關廣告主題與建議。",
+    "description": "Description for the ad privacy feature."
+  },
+  "wsext_update_browser_warning": {
+    "message": "請更新您的瀏覽器以繼續使用此擴充功能並接收安全更新。",
+    "description": "Warning shown when the browser is below the minimum supported version."
+  },
+  "wsext_keep_your_secrets": {
+    "message": "守護您的秘密。",
+    "description": "Tagline shown on the splash page."
+  },
+  "wsext_get_started": {
+    "message": "開始",
+    "description": "Call to action on the splash page that leads to signup."
+  },
+  "wsext_pick_your_plan": {
+    "message": "選擇您的方案",
+    "description": "Heading on the signup screen."
+  },
+  "wsext_free": {
+    "message": "免費",
+    "description": "Title of the free plan option."
+  },
+  "wsext_free_description": {
+    "message": "每月最多 10GB",
+    "description": "Description of the free plan option."
+  },
+  "wsext_pro_description": {
+    "message": "無限 GB 及更多",
+    "description": "Description of the pro plan option."
+  },
+  "wsext_locations": {
+    "message": "位置",
+    "description": "Title for the locations page."
+  },
+  "wsext_sort_by": {
+    "message": "依 $sort$ 排序",
+    "description": "Aria label describing the current sort order.",
+    "placeholders": {
+      "sort": {
+        "content": "$1",
+        "example": "字母"
+      }
+    }
+  },
+  "wsext_no_results": {
+    "message": "無結果 :(",
+    "description": "Shown when a search returns no locations."
+  },
+  "wsext_error_fetching_locations": {
+    "message": "取得位置時發生錯誤",
+    "description": "Shown when the locations list fails to load."
+  },
+  "wsext_no_favorites": {
+    "message": "無收藏",
+    "description": "Shown when the favorites list is empty."
+  },
+  "wsext_upgrade_uppercase": {
+    "message": "升級",
+    "description": "Upgrade label shown next to pro-only data centers."
+  },
+  "wsext_extDescription": {
+    "message": "Windscribe helps you mask your physical location, circumvent censorship, and block ads and trackers on websites you use every day",
+    "description": "Extension description shown in the Chrome Web Store and chrome://extensions."
+  },
+  "wsext_cmdToggleProxy": {
+    "message": "切換代理開/關",
+    "description": "Keyboard shortcut description for toggling the proxy."
+  },
+  "wsext_cmdOpenPreferences": {
+    "message": "開啟偏好設定",
+    "description": "Keyboard shortcut description for opening preferences."
+  },
+  "wsext_cmdOpenFavourites": {
+    "message": "開啟收藏位置",
+    "description": "Keyboard shortcut description for opening favourite locations."
+  },
+  "wsext_cmdOpenLocations": {
+    "message": "開啟位置",
+    "description": "Keyboard shortcut description for opening locations."
+  },
+  "wsext_extName": {
+    "message": "Free VPN For Chrome - VPN Extension - Windscribe",
+    "description": "Extension name shown in the Chrome Web Store and chrome://extensions."
+  }
+}

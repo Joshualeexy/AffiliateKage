@@ -1,0 +1,1 @@
+chrome.runtime.sendMessage({what:"toggleToolbarIcon"}).catch((()=>{}));

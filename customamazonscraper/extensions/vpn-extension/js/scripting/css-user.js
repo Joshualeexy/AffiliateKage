@@ -1,0 +1,1 @@
+!async function(){const e=new URL(document.baseURI);chrome.runtime.sendMessage({what:"injectCustomFilters",hostname:e.hostname}).catch((()=>{}))}();

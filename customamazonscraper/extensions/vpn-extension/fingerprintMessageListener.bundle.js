@@ -1,0 +1,1 @@
+(()=>{"use strict";(()=>{let e=0;window.addEventListener("windscribe-fingerprint-detected",(()=>{const t=Date.now();t-e<5e3||(e=t,chrome.runtime.sendMessage({what:"fingerprintDetected"}))}))})()})();

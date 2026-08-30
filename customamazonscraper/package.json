@@ -1,0 +1,20 @@
+{
+  "name": "bot-framework",
+  "version": "1.0.0",
+  "description": "Standalone stealth browser automation framework using Playwright, stealth plugins, fingerprint spoofing, and pre-loaded extensions.",
+  "main": "lib/browser.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^16.4.5",
+    "express": "^5.2.1",
+    "fingerprint-generator": "^2.1.48",
+    "fingerprint-injector": "^2.1.44",
+    "playwright": "^1.62.1",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
+  }
+}

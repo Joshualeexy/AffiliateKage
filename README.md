@@ -22,7 +22,6 @@ An end-to-end autonomous publishing, research, monetization, and content orchest
 - **Automatic VRAM Orchestration:** Unloads Ollama from GPU memory before starting ComfyUI to render high-resolution SDXL featured images, then uploads the asset seamlessly with the article.
 - **Full SEO & Compliance Hygiene:** Enforces `rel="nofollow sponsored noopener"`, context-aware FTC affiliate disclosures, and clean semantic heading hierarchies.
 - **Unified Global CLI (`ejiroinspire`):** A single command (`ejiroinspire start`) that manages the background stealth scraper microservice and Python pipeline together with graceful `Ctrl+C` termination.
-- **Batch Remediation Engine:** Includes a standalone migration script (`remediate_posts.py`) that audits and repairs published database archives in-place with automatic revision snapshots.
 
 ---
 
@@ -30,21 +29,21 @@ An end-to-end autonomous publishing, research, monetization, and content orchest
 
 ```mermaid
 flowchart TD
-    A[Topic Generator] -->|Select Category & Format| B[Duplicate & Trend Check]
-    B -->|Query DDG + Crawl4AI| C[Grounded Web Research]
-    C -->|Synthesize Insights| D[Structured Outline Generator]
-    D -->|Ollama LLM| E[Long-Form Article Generation]
-    E -->|Structural Validation| F[Article Validator]
-    F -->|Extract Products & Software| G[Entity Extractor]
-    G --> H{Is Physical Product?}
-    H -->|Yes| I[Stealth Amazon Scraper API]
-    H -->|No| J[Curated Software URL Router]
-    I -->|Fetch ASINs, 1500px CDN Images, Ratings| K[Inject Product Showcase Cards]
+    A["Topic Generator"] -->|Select Category & Format| B["Duplicate & Trend Check"]
+    B -->|Query DDG + Crawl4AI| C["Grounded Web Research"]
+    C -->|Synthesize Insights| D["Structured Outline Generator"]
+    D -->|Ollama LLM| E["Long-Form Article Generation"]
+    E -->|Structural Validation| F["Article Validator"]
+    F -->|Extract Products & Software| G["Entity Extractor"]
+    G --> H{"Is Physical Product?"}
+    H -->|Yes| I["Stealth Amazon Scraper API"]
+    H -->|No| J["Curated Software URL Router"]
+    I -->|Fetch ASINs, 1500px CDN Images, Ratings| K["Inject Product Showcase Cards"]
     J -->|Attach Official Redirects| K
-    K -->|Generate SDXL Hero Image| L[ComfyUI Generator]
-    L -->|Sanitize & Convert to HTML| M[FTC & SEO Compliance Filter]
-    M -->|Push via Admin REST API| N[Headless CMS / Laravel Backend]
-    N -->|Instant Cache Purge| O[Next.js Frontend (ISR)]
+    K -->|Generate SDXL Hero Image| L["ComfyUI Generator"]
+    L -->|Sanitize & Convert to HTML| M["FTC & SEO Compliance Filter"]
+    M -->|Push via Admin REST API| N["Headless CMS / Laravel Backend"]
+    N -->|Instant Cache Purge| O["Next.js Frontend (ISR)"]
 ```
 
 ---
@@ -162,17 +161,6 @@ node scraper.js get "B0B11LJ69K"
 npm start
 ```
 
-### Batch Archive Remediation
-If you have an existing blog database that needs structural heading fixes, orphaned paragraph wrapping, or Amazon compliance enforcement:
-
-```bash
-# Preview changes without modifying database
-./venv/bin/python remediate_posts.py --dry-run
-
-# Run live remediation across entire database
-./venv/bin/python remediate_posts.py --yes
-```
-
 ---
 
 ## 📁 Repository Structure
@@ -181,7 +169,6 @@ If you have an existing blog database that needs structural heading fixes, orpha
 .
 ├── main.py                     # Main orchestrator pipeline loop
 ├── ejiroinspire                # Global CLI bash controller
-├── remediate_posts.py          # Batch database audit & repair engine
 ├── pipeline_state.json         # Resumable stage execution state
 ├── generated_topics.json       # Topic history & duplicate prevention
 ├── config.py                   # Local overrides and configuration
