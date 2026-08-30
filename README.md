@@ -27,7 +27,7 @@
 - **Dynamic Product Showcase Cards:** Injects styled, responsive product highlight cards with Editor's Choice badges (*Top Pick, Best Value, Recommended*), official product imagery, and compliant affiliate CTAs.
 - **Pluggable Hero Image Engine:** Automatically unloads Ollama from GPU memory before starting ComfyUI to render studio SDXL images, or seamlessly renders via cloud APIs (OpenAI DALL-E 3, Stability AI) for zero-GPU environments.
 - **Full SEO & Compliance Hygiene:** Enforces `rel="nofollow sponsored noopener"`, context-aware FTC affiliate disclosures, and clean semantic heading hierarchies.
-- **Unified Global CLI (`ejiroinspire`):** A single command (`ejiroinspire start`) that manages the background stealth scraper microservice and Python pipeline together with graceful `Ctrl+C` termination.
+- **Unified Global CLI (`affiliatekage`):** A single command (`affiliatekage start`) that manages the background stealth scraper microservice and Python pipeline together with graceful `Ctrl+C` termination.
 
 ---
 
@@ -97,8 +97,8 @@ npm install
 cd ..
 
 # Global CLI
-chmod +x ejiroinspire
-ln -sf $(pwd)/ejiroinspire ~/.local/bin/ejiroinspire
+chmod +x affiliatekage
+ln -sf $(pwd)/affiliatekage ~/.local/bin/affiliatekage
 ```
 </details>
 
@@ -161,10 +161,10 @@ You can start the full stack from **any terminal, anywhere on your system**:
 
 ```bash
 # Starts Node.js Scraper API + Python Pipeline
-ejiroinspire start
+affiliatekage start
 
 # Start fresh and clear saved pipeline state:
-ejiroinspire start --clear-state
+affiliatekage start --clear-state
 ```
 
 - When running, pressing **`Ctrl+C`** will gracefully shut down both the Python pipeline and the background Node.js scraper microservice.
@@ -172,10 +172,10 @@ ejiroinspire start --clear-state
 ### Monitoring & Status
 ```bash
 # View active service statuses
-ejiroinspire status
+affiliatekage status
 
 # Stop all background services
-ejiroinspire stop
+affiliatekage stop
 ```
 
 ### Running the Scraper Standalone
@@ -199,7 +199,7 @@ npm start
 ```
 .
 ├── install.sh                  # 1-Click automated system installer
-├── ejiroinspire                # Global CLI bash controller
+├── affiliatekage               # Global CLI bash controller
 ├── main.py                     # Main orchestrator pipeline loop
 ├── config.py                   # Runtime configuration loader
 ├── .env.example                # Template environment variables
