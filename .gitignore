@@ -38,7 +38,6 @@ log/
 Thumbs.db
 
 # Local config
-config.py
 generated/
 
 # Logs
