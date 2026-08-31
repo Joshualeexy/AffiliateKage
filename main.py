@@ -27,6 +27,8 @@ from services.image_generator import ImageGenerator
 from services.comfy import ComfyClient
 from services.markdown import to_html
 from services.image_fetcher import ImageFetcher
+from services.terminal_ui import ui
+from config import OLLAMA_MODEL, IMAGE_PROVIDER, AMAZON_AFFILIATE_TAG
 
 STATE_PATH = Path("pipeline_state.json")
 MAX_VALIDATION_RETRIES = 3
@@ -71,18 +73,18 @@ def run_pipeline(
         topic = state.get("topic")
         if state["stage"] in {"start", "topic_generated"}:
             if not topic:
-                print("Starting stage: Generate Topic")
+                ui.start_step(1, "Generating topic")
                 try:
                     topic = topic_generator.generate(api_client=api)
                 except ValueError as e:
                     print(f"Topic generation failed after all retries: {e}")
                     clear_state()
                     return
-                print(f"Completed stage: Generate Topic — Topic: {topic['title']}")
+                ui.complete_step(1, "Generating topic", topic['title'])
                 state.update({"stage": "topic_generated", "topic": topic})
                 save_state(state)
             else:
-                print(f"Resuming stage: Topic already generated — {topic['title']}")
+                ui.complete_step(1, "Resumed topic", topic['title'])
                 # On resume, perform sanity check since it wasn't generated in this process
                 if api.topic_exists(topic["title"]):
                     print("Topic already exists on resumption. Skipping.")
@@ -97,37 +99,29 @@ def run_pipeline(
         if state["stage"] in {"topic_checked", "topic_classified"}:
             if not article_type_val:
                 article_type = article_type_from_topic_format(topic.get("type"))
-                if article_type:
-                    print(f"Using topic format for article type: {article_type.value}")
-                else:
-                    print("Starting stage: Classify Topic")
+                if not article_type:
                     article_type = classifier.classify(topic["title"])
-                print(f"Completed stage: Classify Topic — {article_type.value}")
                 state.update({"stage": "topic_classified", "article_type": article_type.value})
                 save_state(state)
-            else:
-                print(f"Resuming stage: Topic already classified — {article_type_val}")
 
         # 3. Research
         research_dict = state.get("research_report")
         if state["stage"] in {"topic_classified", "research_completed"}:
             if not research_dict:
-                print("Starting stage: Research")
+                ui.start_step(2, "Researching")
                 # Try the highly specific query first
                 query = f"{topic['primary_keyword']} {topic['title']}"
                 report = researcher.search(query)
                 
                 # Fallback 1: Just the title
                 if not report.results:
-                    print("Full query returned 0 results, falling back to title...")
                     report = researcher.search(topic['title'])
                     
                 # Fallback 2: Just the primary keyword
                 if not report.results:
-                    print("Title query returned 0 results, falling back to primary keyword...")
                     report = researcher.search(topic['primary_keyword'])
                     
-                print(f"Completed stage: Research — Found {len(report.results)} results")
+                ui.complete_step(2, "Researching", f"{len(report.results)} competitor sources analyzed")
                 # Convert dataclass to dict for JSON serialization
                 report_dict = {
                     "query": report.query,
@@ -148,10 +142,10 @@ def run_pipeline(
         outline = state.get("outline")
         if state["stage"] in {"research_completed", "outline_generated"}:
             if not outline:
-                print("Starting stage: Generate Outline")
+                ui.start_step(3, "Building outline")
                 article_type_enum = ArticleType(state["article_type"])
                 outline = outline_generator.generate(topic, article_type_enum, research_report)
-                print("Completed stage: Generate Outline")
+                ui.complete_step(3, "Building outline", "Structured outline synthesized")
                 state.update({"stage": "outline_generated", "outline": outline})
                 save_state(state)
 
@@ -159,17 +153,17 @@ def run_pipeline(
         article = state.get("article")
         if state["stage"] in {"outline_generated", "article_generated"}:
             if not article:
-                print("Starting stage: Generate Article")
+                ui.start_step(4, "Writing article")
                 article_type_enum = ArticleType(state["article_type"])
                 article = article_generator.generate(topic, article_type_enum, outline, research_report)
-                print("Completed stage: Generate Article")
 
-                # 5.5 Sanitize Article (code-only, instant)
-                print("Starting stage: Sanitize Article")
+                # Sanitize Article (code-only, instant)
                 article["content"] = content_sanitizer.sanitize(article["content"], article_type_enum)
                 article["title"] = content_sanitizer.sanitize_plain_text(article["title"])
                 article["seo_title"] = content_sanitizer.sanitize_plain_text(article["seo_title"])
-                print("Completed stage: Sanitize Article")
+                
+                word_count = len(article.get("content", "").split())
+                ui.complete_step(4, "Writing article", f"{word_count:,} words generated")
 
                 state.update({"stage": "article_generated", "article": article})
                 save_state(state)
@@ -178,6 +172,7 @@ def run_pipeline(
         if state["stage"] == "article_generated":
             print("Starting stage: Validate Article")
             article_type_enum = ArticleType(state["article_type"])
+            ui.start_step(7, "Validating & sanitizing")
             report = validator.validate(state["article"]["content"], article_type_enum)
             if not report.passed:
                 print("Validation failed! Looping back to article generation.")
@@ -202,7 +197,7 @@ def run_pipeline(
                 save_state(state)
                 return # Break out and let loop restart
             else:
-                print("Completed stage: Validate Article — Passed")
+                ui.complete_step(7, "Validating & sanitizing", "Passed quality & compliance checks")
                 state["stage"] = "article_validated"
                 state["validation_failures"] = 0
                 save_state(state)
@@ -211,9 +206,7 @@ def run_pipeline(
         entities = state.get("entities")
         if state["stage"] in {"article_validated", "entities_extracted"}:
             if not entities:
-                print("Starting stage: Extract Entities")
                 entities = entity_extractor.extract(state["article"]["content"])
-                print(f"Completed stage: Extract Entities — Extracted {len(entities)} entities")
                 state["article"]["entities"] = entities
                 state["article"]["article_type"] = state["article_type"]
                 state["article"]["category"] = topic.get("category", "") if topic else ""
@@ -224,7 +217,7 @@ def run_pipeline(
         product_images = state.get("product_images", {})
         product_urls = state.get("product_urls", {})
         if state["stage"] == "entities_extracted" and (not product_images or not product_urls):
-            print("Starting stage: Fetch Product Images & Direct Links")
+            ui.start_step(5, "Extracting products")
             try:
                 category = topic.get("category", "") if topic else ""
                 product_data = ImageFetcher.fetch_product_data(
@@ -235,7 +228,7 @@ def run_pipeline(
                 product_urls = {k: v.get("url", "") for k, v in product_data.items() if v.get("url")}
                 state["product_images"] = product_images
                 state["product_urls"] = product_urls
-                print(f"Completed stage: Fetch Product Images — Found {len(product_images)} images and {len(product_urls)} direct URLs")
+                ui.complete_step(5, "Extracting products", f"{len(product_images)} items mapped with Amazon CDN photos & direct links")
             except Exception as e:
                 print(f"Warning: Image/link fetching failed: {e}. Continuing without product metadata.")
                 state["product_images"] = {}
@@ -337,10 +330,10 @@ def run_pipeline(
         image_path = state.get("image_path")
         if state["stage"] in {"image_generated", "publish_ready"}:
             if not image_path:
-                print("Starting stage: Generate Featured Image")
+                ui.start_step(6, "Generating hero image")
                 try:
                     image_path = image_generator.generate(image_prompt)
-                    print("Completed stage: Generate Featured Image")
+                    ui.complete_step(6, "Generating hero image", "Featured image ready")
                     state.update({"stage": "publish_ready", "image_path": image_path})
                     save_state(state)
                 except Exception as e:
@@ -349,9 +342,10 @@ def run_pipeline(
 
         # 12. Publish
         if state["stage"] == "publish_ready":
-            print("Starting stage: Publish Article")
+            ui.start_step(8, "Publishing")
             api.publish(state["article"], image_path)
-            print(f"Completed stage: Publish Article — ✓ Published: {topic['title']}")
+            ui.complete_step(8, "Publishing", "Live on CMS")
+            ui.render_publish_card(topic['title'])
             clear_state()
 
     except KeyboardInterrupt:
@@ -381,15 +375,23 @@ def main(clear_saved_state: bool = False):
         article_generator = ArticleGenerator()
         image_prompt_generator = ImagePromptGenerator()
         
-        # Initialize new modules
+        # Initialize modules
         classifier = Classifier()
         researcher = Crawl4AiProvider()
         outline_generator = OutlineGenerator()
         validator = ArticleValidator()
         entity_extractor = EntityExtractor()
-        content_sanitizer = ContentSanitizer()
+        content_sanitizer = ContentSanitizer(affiliate_tag=AMAZON_AFFILIATE_TAG)
         internal_link_injector = InternalLinkInjector()
         affiliate_link_injector = AffiliateLinkInjector()
+
+        # Render stylish AFFILIATEKAGE WORKER status card
+        ui.render_worker_card(
+            model=OLLAMA_MODEL,
+            mode="Production",
+            target="Ejiro Inspire",
+            images=IMAGE_PROVIDER
+        )
 
         while True:
             run_pipeline(
