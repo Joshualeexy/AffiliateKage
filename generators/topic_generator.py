@@ -92,10 +92,10 @@ class TopicGenerator:
 
     VALID_TYPES = {f.lower() for f in FORMATS}
 
-    # How many of the most recent posts' categories to exclude when picking
-    # the next one, so you can't get a run of same/adjacent-feeling topics
-    # (e.g. Networking -> Home Security -> Smart Home back to back).
-    RECENT_CATEGORY_WINDOW = 5
+    # Number of least-recently-used categories to sample from for each post.
+    # With 44+ categories, sampling from the top 8 least-used ensures at least
+    # ~35+ posts before any category can repeat, guaranteeing broad site diversity.
+    LRU_CATEGORY_POOL_SIZE = 8
 
     def __init__(
         self,
@@ -131,9 +131,13 @@ class TopicGenerator:
         normalized = []
         for entry in data:
             if isinstance(entry, dict) and "title" in entry:
-                normalized.append({"title": entry["title"], "category": entry.get("category", "")})
+                normalized.append({
+                    "title": entry["title"],
+                    "category": entry.get("category", ""),
+                    "product": entry.get("product", ""),
+                })
             elif isinstance(entry, str):
-                normalized.append({"title": entry, "category": ""})
+                normalized.append({"title": entry, "category": "", "product": ""})
         return normalized
 
     def _save_history(self, history: List[Dict[str, str]]) -> None:
@@ -215,10 +219,31 @@ class TopicGenerator:
         s = re.sub(r'-+', '-', s)
         return s.strip('-')
 
-    def _is_duplicate(self, title: str, history: List[Dict[str, str]]) -> bool:
+    @staticmethod
+    def _stem(word: str) -> str:
+        w = word.lower()
+        if w.endswith("ies") and len(w) > 4:
+            return w[:-3] + "y"
+        if w.endswith("es") and len(w) > 3:
+            return w[:-2]
+        if w.endswith("s") and not w.endswith("ss") and len(w) > 3:
+            return w[:-1]
+        return w
+
+    def _is_duplicate(self, title: str, history: List[Dict[str, str]], product: str = None) -> bool:
         norm_title = title.strip().lower()
         new_slug = self._slugify(title)
-        new_words = set(w for w in re.findall(r'\w+', norm_title) if len(w) > 3)
+        new_words = set(self._stem(w) for w in re.findall(r'\w+', norm_title) if len(w) > 2)
+
+        prod_stems = set()
+        if product:
+            prod_stems = set(self._stem(w) for w in re.findall(r'\w+', product.lower()) if len(w) > 2)
+
+        stop_intent = {
+            "best", "top", "review", "reviews", "guide", "reviewed", "tested",
+            "choice", "option", "pick", "picks", "good", "great", "year",
+            "2026", "2025", "2024", "under", "deal", "deals", "for", "and", "the", "with"
+        }
 
         for entry in history:
             entry_title = entry.get("title", "").strip().lower()
@@ -229,13 +254,24 @@ class TopicGenerator:
             entry_slug = self._slugify(entry_title)
             if new_slug and entry_slug and new_slug == entry_slug:
                 return True
-            # Near duplicate similarity check for same/similar topics
-            entry_words = set(w for w in re.findall(r'\w+', entry_title) if len(w) > 3)
+
+            entry_words = set(self._stem(w) for w in re.findall(r'\w+', entry_title) if len(w) > 2)
             if new_words and entry_words:
                 overlap = new_words & entry_words
                 union = new_words | entry_words
-                if len(overlap) >= 3 and len(overlap) / len(union) >= 0.8:
+                # General high word overlap (>= 70%)
+                if len(overlap) >= 3 and len(overlap) / len(union) >= 0.7:
                     return True
+
+                # Search-intent collision check:
+                # If both articles target the exact same product family, check if they
+                # share primary qualifier/intent words (e.g. both targeting "family" or "budget")
+                if prod_stems and prod_stems.issubset(new_words) and prod_stems.issubset(entry_words):
+                    intent_new = {w for w in (new_words - prod_stems) if w not in stop_intent and not w.isdigit()}
+                    intent_old = {w for w in (entry_words - prod_stems) if w not in stop_intent and not w.isdigit()}
+                    shared_intent = intent_new & intent_old
+                    if shared_intent:
+                        return True
         return False
 
     DISALLOWED_CURRENCY_PATTERNS = [
@@ -298,17 +334,52 @@ class TopicGenerator:
         return cleaned
 
     def _pick_category(self, history: List[Dict[str, str]]) -> str:
-        recent = {
-            entry["category"]
-            for entry in history[-self.RECENT_CATEGORY_WINDOW:]
-            if entry.get("category")
-        }
-        candidates = [c for c in self.CATEGORIES if c not in recent]
-        # If somehow everything is excluded (tiny category list, huge window),
-        # fall back to the full list rather than crashing.
-        if not candidates:
-            candidates = list(self.CATEGORIES.keys())
+        """Fair Least-Recently-Used (LRU) category selection across all categories.
+        Tracks when each category was last seen in history and prioritizes the
+        categories that have not appeared in the longest time. Samples randomly
+        among the top least-recently-used tier to maintain organic variety
+        while guaranteeing broad, balanced catalog distribution."""
+        last_seen = {}
+        for idx, entry in enumerate(history):
+            cat = entry.get("category")
+            if cat and cat in self.CATEGORIES:
+                last_seen[cat] = idx
+
+        # Sort all categories by when they were last seen (unseen or oldest first)
+        sorted_cats = sorted(self.CATEGORIES.keys(), key=lambda c: last_seen.get(c, -1))
+        
+        # Pick randomly among the top least-recently-used candidate tier
+        # This guarantees at least ~35 posts between any repeat of the same category.
+        pool_size = min(self.LRU_CATEGORY_POOL_SIZE, len(sorted_cats))
+        candidates = sorted_cats[:pool_size]
         return random.choice(candidates)
+
+    def _pick_product(self, category: str, history: List[Dict[str, str]]) -> str:
+        """Within the chosen category, select the product family that has been
+        used least recently across history."""
+        products = self.CATEGORIES.get(category, [])
+        if not products:
+            return ""
+        if len(products) == 1:
+            return products[0]
+
+        prod_last_seen = {p: -1 for p in products}
+        for idx, entry in enumerate(history):
+            entry_cat = entry.get("category", "")
+            if entry_cat and entry_cat.lower().strip() != category.lower().strip():
+                continue
+
+            entry_prod = entry.get("product", "")
+            entry_title = entry.get("title", "").lower()
+
+            for p in products:
+                if entry_prod and entry_prod.lower() == p.lower():
+                    prod_last_seen[p] = idx
+                elif any(kw.lower() in entry_title for kw in re.findall(r'\w+', p.lower()) if len(kw) > 3):
+                    prod_last_seen[p] = idx
+
+        sorted_prods = sorted(products, key=lambda p: prod_last_seen.get(p, -1))
+        return sorted_prods[0]
 
     # -- prompt -----------------------------------------------------------
 
@@ -374,7 +445,7 @@ Return ONLY valid JSON in this exact shape:
 
         for attempt in range(self.max_retries):
             category = self._pick_category(history)
-            product = random.choice(self.CATEGORIES[category])
+            product = self._pick_product(category, history)
             article_type = random.choice(self.FORMATS)
             trending_keywords = self._get_trending_keywords_for_category(category, product)
             if trending_keywords:
@@ -439,14 +510,18 @@ Return ONLY valid JSON in this exact shape:
                     else:
                         raise ValueError(year_issue)
 
-                if self._is_duplicate(topic["title"], history):
-                    raise ValueError(f"Duplicate title in local history: {topic['title']}")
+                if self._is_duplicate(topic["title"], history, product=product):
+                    raise ValueError(f"Duplicate or intent-colliding title in local history: {topic['title']}")
 
                 if api_client:
                     if api_client.topic_exists(topic["title"]):
                         raise ValueError(f"Duplicate or too similar topic exists on API: {topic['title']}")
 
-                history.append({"title": topic["title"].strip(), "category": category})
+                history.append({
+                    "title": topic["title"].strip(),
+                    "category": category,
+                    "product": product,
+                })
                 self._save_history(history)
 
                 return topic
