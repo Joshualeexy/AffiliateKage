@@ -39,6 +39,7 @@ Thumbs.db
 
 # Local config
 generated/
+category_cooldowns.json
 
 # Logs
 *.log

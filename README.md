@@ -1,35 +1,129 @@
+<p align="center">
+  <img src="assets/social-preview.png" alt="AffiliateKage — Autonomous AI Engine for Product Intelligence & Affiliate Publishing" width="100%">
+</p>
+
+<div align="center">
+
 # 🥷 AffiliateKage 影
 
-### Autonomous AI Content Research, Product Intelligence & Affiliate Publishing Engine
+### An autonomous AI engine that researches products, generates SEO content, enriches it with affiliate data, creates images, validates the result, and publishes it.
 
-[![Live Showcase](https://img.shields.io/badge/Live%20Showcase-ejiroinspire.com-blueviolet?style=for-the-badge)](https://ejiroinspire.com)
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org/)
-[![LLM](https://img.shields.io/badge/LLM-Provider%20Agnostic-purple.svg)](https://ollama.ai/)
-[![Images](https://img.shields.io/badge/Image-ComfyUI%20%2F%20Cloud-orange.svg)](https://github.com/comfyanonymous/ComfyUI)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Live Showcase](https://img.shields.io/badge/Live%20Showcase-ejiroinspire.com%2Fblog-8b5cf6?style=for-the-badge&logo=vercel)](https://ejiroinspire.com/blog)
+[![Pipeline Active](https://img.shields.io/badge/Zero--Touch-Pipeline%20Active-10b981?style=for-the-badge&logo=githubactions)](https://github.com/Joshualeexy/AffiliateKage)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![LLM](https://img.shields.io/badge/LLM-Local%20%2F%20Cloud%20Agnostic-8A2BE2?style=for-the-badge&logo=ollama)](https://ollama.ai/)
+[![Hero Art](https://img.shields.io/badge/Hero%20Art-ComfyUI%20SDXL-f59e0b?style=for-the-badge)](https://github.com/comfyanonymous/ComfyUI)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
-> **Research → Generate → Enrich → Render → Validate → Publish**
+</div>
 
-AffiliateKage is an end-to-end autonomous content production and affiliate publishing engine.
+---
 
-It orchestrates topic discovery, web research, structured content generation, entity extraction, product intelligence, affiliate enrichment, image generation, SEO processing, and CMS publication as a single local application.
+## ⚡ The 6-Stage Autonomous Pipeline
 
-The system is **provider-agnostic at the AI layer**. Local inference through Ollama is supported, but the content-generation architecture is designed so that an external frontier model or another LLM API can be substituted without redesigning the publishing pipeline.
+When someone discovers AffiliateKage, here is how the engine autonomously runs from keyword research to live CMS publication:
 
-The same principle applies to image generation: local ComfyUI/SDXL and cloud image APIs are interchangeable backends behind the image-generation layer.
+```
+Research
+   ↓
+Generate
+   ↓
+Enrich
+   ↓
+Render
+   ↓
+Validate
+   ↓
+Publish
+```
 
-### Production Showcase
+| Stage | Autonomous Operation | Engine / Technology Stack |
+| :--- | :--- | :--- |
+| **1. Research** | Scrapes live search queries, extracts competitor insights, and gathers commercial buying intent | Crawl4AI & DuckDuckGo |
+| **2. Generate** | Multi-pass LLM reasoning: classifies intent, builds structured outline, writes editorial copy | Ollama (`qwen3-coder:30b`, `deepseek-r1`) / OpenRouter / OpenAI |
+| **3. Enrich** | Stealth browser pool extracts product ASINs, grabs Amazon CDN photos & injects affiliate tags | Node.js Playwright Stealth Microservice |
+| **4. Render** | Generates photorealistic editorial hero images tailored to article topic | Local ComfyUI (SDXL) / DALL-E 3 / Stability AI |
+| **5. Validate** | Enforces quality guardrails: word count, heading hierarchy, anti-hallucination & FTC disclosures | Deterministic AST & Compliance Rules |
+| **6. Publish** | Converts markdown to semantic HTML, injects styled comparison cards, and pushes live | Headless CMS REST API + Next.js Frontend |
 
-AffiliateKage currently powers the automated publishing workflow behind **[ejiroinspire.com](https://ejiroinspire.com)**.
+---
+
+## 📺 Autonomous Worker in Action
+
+AffiliateKage runs as a hands-free 24/7 background worker with unified process management and self-healing recovery:
+
+<p align="center">
+  <img src="assets/worker_demo.gif" alt="AffiliateKage Autonomous Worker In Action" width="850">
+</p>
+
+> [!TIP]
+> **Zero-Loss State Machine**: The engine serializes execution progress into `pipeline_state.json`. If a model timeout or network blip occurs, the worker automatically resumes exactly where it paused without duplicate API or LLM calls.
+
+---
+
+## 🌐 Live Production Proof: [ejiroinspire.com/blog](https://ejiroinspire.com/blog)
+
+AffiliateKage is actively running in production and powers automated publishing for **[ejiroinspire.com/blog](https://ejiroinspire.com/blog)**. Every article, SDXL hero photo, and Amazon affiliate product comparison card below was generated and published completely hands-free:
+
+<p align="center">
+  <a href="https://ejiroinspire.com/blog" target="_blank">
+    <img src="assets/production_showcase.png" alt="AffiliateKage Live Production Showcase on ejiroinspire.com" width="950">
+  </a>
+</p>
+
+👉 **[Explore Live Published Articles on ejiroinspire.com &rarr;](https://ejiroinspire.com/blog)**
+
+> [!NOTE]
+> **Setting Repository Social Preview on GitHub**:
+> This repository includes an optimized 1280×640 social preview card at [`assets/social-preview.png`](assets/social-preview.png). When setting up your repository on GitHub:
+> 1. Go to **Settings** &rarr; **General**.
+> 2. Scroll to **Social preview** &rarr; click **Edit** &rarr; **Upload an image**.
+> 3. Select [`assets/social-preview.png`](assets/social-preview.png) for rich link unfurling on X (Twitter), LinkedIn, and Discord.
+
+---
+
+## 🚀 Quick Start
+
+Get the full engine running on your system in under 2 minutes:
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/Joshualeexy/AffiliateKage.git
+cd AffiliateKage
+
+# 2. Run automated zero-dependency bootstrap installer
+chmod +x install.sh
+./install.sh
+
+# 3. Configure credentials
+cp .env.example .env
+nano .env
+
+# 4. Start the engine (spawns stealth scraper + Python orchestrator)
+./affiliatekage start
+```
+
+Use the unified CLI controller to manage everything:
+
+```bash
+./affiliatekage status        # Check health of Python orchestrator, Node scraper, Ollama & ComfyUI
+./affiliatekage start         # Start all services with unified logging and graceful shutdown
+./affiliatekage stop          # Stop all background processes cleanly
+```
 
 ---
 
 # Table of Contents
 
+* [The 6-Stage Autonomous Pipeline](#-the-6-stage-autonomous-pipeline)
+* [Autonomous Worker in Action](#-autonomous-worker-in-action)
+* [Live Production Proof](#-live-production-proof-ejiroinspirecomblog)
+* [Quick Start](#-quick-start)
 * [Architecture](#architecture)
 * [Pipeline](#pipeline)
 * [AI Provider Architecture](#ai-provider-architecture)
+* [Image Provider Architecture](#image-provider-architecture)
 * [Features](#features)
 * [System Requirements](#system-requirements)
 * [Installation](#installation)

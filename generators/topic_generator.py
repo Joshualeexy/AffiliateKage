@@ -93,23 +93,24 @@ class TopicGenerator:
     VALID_TYPES = {f.lower() for f in FORMATS}
 
     # Number of least-recently-used categories to sample from for each post.
-    # With 44+ categories, sampling from the top 8 least-used ensures at least
-    # ~35+ posts before any category can repeat, guaranteeing broad site diversity.
-    LRU_CATEGORY_POOL_SIZE = 8
+    # Expanded to 16 to guarantee broader candidate pool and avoid starvation loops.
+    LRU_CATEGORY_POOL_SIZE = 16
 
     def __init__(
         self,
         model_name: str | None = None,
-        max_retries: int = 5,
+        max_retries: int = 10,
         history_file: str = "generated_topics.json",
         history_limit: int = 1000,
         trending_file: str = "trending_keywords.json",
+        cooldown_file: str = "category_cooldowns.json",
     ):
         self.model_name = model_name or os.getenv("OLLAMA_MODEL", "qwen3:8b")
         self.max_retries = max_retries
         self.history_file = history_file
         self.history_limit = history_limit
         self.trending_file = trending_file
+        self.cooldown_file = cooldown_file
         self.client = OllamaClient(self.model_name)
 
     # -- history / dedup -------------------------------------------------
@@ -144,6 +145,28 @@ class TopicGenerator:
         trimmed = history[-self.history_limit:]
         with open(self.history_file, "w", encoding="utf-8") as f:
             json.dump(trimmed, f, indent=2)
+
+    def _load_cooldowns(self) -> Dict[str, float]:
+        """Loads items on cooldown and purges expired entries."""
+        if not os.path.exists(self.cooldown_file):
+            return {}
+        try:
+            with open(self.cooldown_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            now = time.time()
+            return {k: v for k, v in data.items() if isinstance(v, (int, float)) and v > now}
+        except Exception:
+            return {}
+
+    def _record_cooldown(self, item: str, duration: int = 1800) -> None:
+        """Sets a temporary cooldown on saturated or colliding items."""
+        cooldowns = self._load_cooldowns()
+        cooldowns[item] = time.time() + duration
+        try:
+            with open(self.cooldown_file, "w", encoding="utf-8") as f:
+                json.dump(cooldowns, f, indent=2)
+        except Exception as e:
+            print(f"Failed to record cooldown: {e}")
 
     def _load_trending_keywords(self) -> Dict[str, List[str]]:
         if not os.path.exists(self.trending_file):
@@ -270,7 +293,8 @@ class TopicGenerator:
                     intent_new = {w for w in (new_words - prod_stems) if w not in stop_intent and not w.isdigit()}
                     intent_old = {w for w in (entry_words - prod_stems) if w not in stop_intent and not w.isdigit()}
                     shared_intent = intent_new & intent_old
-                    if shared_intent:
+                    # Require at least 2 shared qualifiers or complete intent subset to trigger collision
+                    if len(shared_intent) >= 2 or (intent_new and intent_new.issubset(intent_old)):
                         return True
         return False
 
@@ -284,8 +308,8 @@ class TopicGenerator:
         return any(pattern.search(title) for pattern in self.DISALLOWED_CURRENCY_PATTERNS)
 
     # Matches a standalone 4-digit year like 2024, 2026, 2031 -- not part of
-    # a longer number (e.g. won't match the "2024" inside "SM-2024X").
-    YEAR_PATTERN = re.compile(r"\b(20\d{2})\b")
+    # a price/budget like "$2000", "Under 2000", "Below 2000".
+    YEAR_PATTERN = re.compile(r"(?<![\$\d])(?<!under\s)(?<!below\s)(?<!sub\s)\b(202[4-9]|203[0-9])\b", re.IGNORECASE)
 
     def _year_violation(self, title: str, article_type: str) -> str | None:
         """Prompt instructions alone don't reliably stop the model from
@@ -310,11 +334,11 @@ class TopicGenerator:
     # part of the title (e.g. a named model year comparison, which we leave
     # alone -- see _strip_disallowed_year).
     YEAR_STRIP_PATTERNS = [
-        re.compile(r"\s*[\(\[]\s*20\d{2}\s*[\)\]]"),        # "(2026)" / "[2026]"
-        re.compile(r"\s*[-:–]\s*20\d{2}\s*$"),                # trailing "- 2026" / ": 2026"
-        re.compile(r"\s+for\s+20\d{2}\b", re.IGNORECASE),     # "... for 2026"
-        re.compile(r"\s+in\s+20\d{2}\b", re.IGNORECASE),      # "... in 2026"
-        re.compile(r"\s+20\d{2}\s+(edition|guide|update)\b", re.IGNORECASE),
+        re.compile(r"\s*[\(\[]\s*(?:202[4-9]|203[0-9])\s*[\)\]]"),
+        re.compile(r"\s*[-:–]\s*(?:202[4-9]|203[0-9])\s*$"),
+        re.compile(r"\s+for\s+(?:202[4-9]|203[0-9])\b", re.IGNORECASE),
+        re.compile(r"\s+in\s+(?:202[4-9]|203[0-9])\b", re.IGNORECASE),
+        re.compile(r"\s+(?:202[4-9]|203[0-9])\s+(edition|guide|update)\b", re.IGNORECASE),
     ]
 
     def _strip_disallowed_year(self, title: str) -> str | None:
@@ -333,37 +357,53 @@ class TopicGenerator:
             return None
         return cleaned
 
-    def _pick_category(self, history: List[Dict[str, str]]) -> str:
+    def _pick_category(self, history: List[Dict[str, str]], exclude: set = None, cooldowns: Dict[str, float] = None) -> str:
         """Fair Least-Recently-Used (LRU) category selection across all categories.
         Tracks when each category was last seen in history and prioritizes the
         categories that have not appeared in the longest time. Samples randomly
         among the top least-recently-used tier to maintain organic variety
-        while guaranteeing broad, balanced catalog distribution."""
+        while filtering out categories currently on cooldown or in exclude set."""
         last_seen = {}
         for idx, entry in enumerate(history):
             cat = entry.get("category")
             if cat and cat in self.CATEGORIES:
                 last_seen[cat] = idx
 
-        # Sort all categories by when they were last seen (unseen or oldest first)
-        sorted_cats = sorted(self.CATEGORIES.keys(), key=lambda c: last_seen.get(c, -1))
-        
-        # Pick randomly among the top least-recently-used candidate tier
-        # This guarantees at least ~35 posts between any repeat of the same category.
+        exclude = exclude or set()
+        cooldowns = cooldowns if cooldowns is not None else self._load_cooldowns()
+
+        available_cats = [
+            c for c in self.CATEGORIES.keys()
+            if c not in exclude and c not in cooldowns
+        ]
+
+        if not available_cats:
+            available_cats = [c for c in self.CATEGORIES.keys() if c not in exclude]
+        if not available_cats:
+            available_cats = list(self.CATEGORIES.keys())
+
+        # Sort available categories by when they were last seen (unseen or oldest first)
+        sorted_cats = sorted(available_cats, key=lambda c: last_seen.get(c, -1))
         pool_size = min(self.LRU_CATEGORY_POOL_SIZE, len(sorted_cats))
         candidates = sorted_cats[:pool_size]
         return random.choice(candidates)
 
-    def _pick_product(self, category: str, history: List[Dict[str, str]]) -> str:
+    def _pick_product(self, category: str, history: List[Dict[str, str]], exclude: set = None) -> str:
         """Within the chosen category, select the product family that has been
-        used least recently across history."""
+        used least recently across history. If multiple products share the lowest
+        score, pick randomly among them rather than always returning index 0."""
         products = self.CATEGORIES.get(category, [])
         if not products:
             return ""
         if len(products) == 1:
             return products[0]
 
-        prod_last_seen = {p: -1 for p in products}
+        exclude = exclude or set()
+        available = [p for p in products if p not in exclude]
+        if not available:
+            available = products
+
+        prod_last_seen = {p: -1 for p in available}
         for idx, entry in enumerate(history):
             entry_cat = entry.get("category", "")
             if entry_cat and entry_cat.lower().strip() != category.lower().strip():
@@ -372,25 +412,28 @@ class TopicGenerator:
             entry_prod = entry.get("product", "")
             entry_title = entry.get("title", "").lower()
 
-            for p in products:
+            for p in available:
                 if entry_prod and entry_prod.lower() == p.lower():
                     prod_last_seen[p] = idx
                 elif any(kw.lower() in entry_title for kw in re.findall(r'\w+', p.lower()) if len(kw) > 3):
                     prod_last_seen[p] = idx
 
-        sorted_prods = sorted(products, key=lambda p: prod_last_seen.get(p, -1))
-        return sorted_prods[0]
+        min_val = min(prod_last_seen.values())
+        best_prods = [p for p in available if prod_last_seen[p] == min_val]
+        return random.choice(best_prods)
 
     # -- prompt -----------------------------------------------------------
 
-    def _build_prompt(self, category: str, product: str, article_type: str, trending_keywords: List[str] = None) -> str:
+    def _build_prompt(
+        self,
+        category: str,
+        product: str,
+        article_type: str,
+        trending_keywords: List[str] = None,
+        history: List[Dict[str, str]] = None
+    ) -> str:
         current_year = datetime.now().year
 
-        # Only surface the actual year number when this format is allowed to
-        # use it. Printing "{current_year}" into every prompt -- even ones
-        # instructing the model NOT to use a year -- gave the model a fresh
-        # number to latch onto and it started appending it anyway. Simplest
-        # fix: don't put the number in front of the model unless it's needed.
         if article_type.lower() == "best product list":
             year_instructions = f"""
 The current year is {current_year}. You may include {current_year} in the
@@ -406,8 +449,24 @@ parentheses, or as a suffix), unless comparing specific named model years
             trends_str = "\n".join(f"- {k}" for k in trending_keywords)
             trends_context = f"\nTARGET TRENDING TOPICS / POPULAR SEARCH QUERIES:\n{trends_str}\n\nMake sure the generated article topic and primary keyword align with or target one of these popular search trends to drive traffic.\n"
 
+        history_context = ""
+        if history:
+            prod_lower = product.lower()
+            prod_words = [kw.lower() for kw in re.findall(r'\w+', prod_lower) if len(kw) > 3]
+            covered = [
+                e.get("title", "") for e in history[-350:]
+                if e.get("title") and (
+                    e.get("product", "").lower() == prod_lower
+                    or any(w in e.get("title", "").lower() for w in prod_words)
+                )
+            ]
+            if covered:
+                unique_covered = list(dict.fromkeys(covered))[-5:]
+                covered_str = "\n".join(f"- {t}" for t in unique_covered)
+                history_context = f"\nALREADY PUBLISHED ON OUR SITE (DO NOT REPEAT OR CLOSELY DUPLICATE THESE ANGLES/TITLES):\n{covered_str}\nFocus on a unique, fresh angle, specific target user scenario, or distinct sub-use.\n"
+
         return f"""You are an SEO strategist for Ejiro Inspire.
-{trends_context}
+{trends_context}{history_context}
 Today's category: {category}
 Focus on: {product}
 Article format: {article_type}
@@ -442,15 +501,19 @@ Return ONLY valid JSON in this exact shape:
 
     def generate(self, api_client: Any = None) -> Dict[str, Any]:
         history = self._load_history()
+        cooldowns = self._load_cooldowns()
+
+        failed_categories_this_run = set()
+        failed_products_this_run = set()
 
         for attempt in range(self.max_retries):
-            category = self._pick_category(history)
-            product = self._pick_product(category, history)
+            category = self._pick_category(history, exclude=failed_categories_this_run, cooldowns=cooldowns)
+            product = self._pick_product(category, history, exclude=failed_products_this_run)
             article_type = random.choice(self.FORMATS)
             trending_keywords = self._get_trending_keywords_for_category(category, product)
             if trending_keywords:
                 print(f"Topic Generator: Targeting trending keywords for '{product}': {trending_keywords}")
-            prompt = self._build_prompt(category, product, article_type, trending_keywords)
+            prompt = self._build_prompt(category, product, article_type, trending_keywords, history=history)
 
             try:
                 response = self.client.generate(
@@ -497,9 +560,6 @@ Return ONLY valid JSON in this exact shape:
 
                 year_issue = self._year_violation(topic["title"], article_type)
                 if year_issue:
-                    # "Best Product List" with a wrong year is a factual
-                    # error (stale year), not just unwanted filler -- don't
-                    # try to patch that, just regenerate.
                     if article_type.lower() == "best product list":
                         raise ValueError(year_issue)
 
@@ -527,7 +587,20 @@ Return ONLY valid JSON in this exact shape:
                 return topic
 
             except Exception as e:
+                err_msg = str(e)
+                failed_products_this_run.add(product)
+                all_prods = set(self.CATEGORIES.get(category, []))
+                if all_prods.issubset(failed_products_this_run):
+                    failed_categories_this_run.add(category)
+
+                if "exists on API" in err_msg or "Duplicate or intent-colliding" in err_msg:
+                    self._record_cooldown(f"{category}::{product}", 1800)
+                    if all_prods.issubset(failed_products_this_run):
+                        self._record_cooldown(category, 1800)
+
                 if attempt == self.max_retries - 1:
+                    for cat in failed_categories_this_run:
+                        self._record_cooldown(cat, 1800)
                     raise
                 print(f"Retry {attempt + 1}: {e}")
                 time.sleep(1)
